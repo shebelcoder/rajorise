@@ -1,6 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -95,11 +96,13 @@ model VerificationToken {
 
 model Report {
   id          String       @id @default(cuid())
+  slug        String?      @unique
   title       String
   location    String
   story       String       @db.Text
   familiesAffected Int     @default(0)
   amountNeeded Float       @default(0)
+  raised      Float        @default(0)
   category    ProjectCategory
   status      ReportStatus @default(PENDING)
   images      String[]
@@ -170,6 +173,22 @@ model Donation {
   message         String?
   isAnonymous     Boolean  @default(false)
   createdAt       DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  actorId   String?
+  targetId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+model EmailReceipt {
+  id         String   @id @default(cuid())
+  donationId String   @unique
+  sentAt     DateTime @default(now())
+  email      String
 }
 
 model ImpactReport {

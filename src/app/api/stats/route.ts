@@ -1,20 +1,31 @@
 import { NextResponse } from "next/server";
-
-// These would be fetched from DB in production
-const STATS = {
-  totalDonated: 125340,
-  familiesHelped: 340,
-  studentsSupported: 89,
-  waterTrucks: 47,
-  lastUpdated: new Date().toISOString(),
-};
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  // TODO: Replace with real DB queries once Prisma is configured
-  // const totalDonated = await prisma.donation.aggregate({ _sum: { amount: true } });
-  // const familiesHelped = await prisma.report.aggregate({ _sum: { familiesAffected: true } });
+  try {
+    const [totalDonatedResult, familiesHelpedResult, studentsResult, waterTrucksResult] =
+      await Promise.all([
+        prisma.donation.aggregate({ _sum: { amount: true } }),
+        prisma.report.aggregate({
+          where: { status: "APPROVED" },
+          _sum: { familiesAffected: true },
+        }),
+        prisma.impactReport.aggregate({ _sum: { studentsSupported: true } }),
+        prisma.impactReport.aggregate({ _sum: { trucksDelivered: true } }),
+      ]);
 
-  return NextResponse.json(STATS, {
-    headers: { "Cache-Control": "s-maxage=300, stale-while-revalidate" },
-  });
+    return NextResponse.json(
+      {
+        totalDonated:      totalDonatedResult._sum.amount            ?? 0,
+        familiesHelped:    familiesHelpedResult._sum.familiesAffected ?? 0,
+        studentsSupported: studentsResult._sum.studentsSupported      ?? 0,
+        waterTrucks:       waterTrucksResult._sum.trucksDelivered     ?? 0,
+        lastUpdated:       new Date().toISOString(),
+      },
+      { headers: { "Cache-Control": "s-maxage=300, stale-while-revalidate" } }
+    );
+  } catch (err) {
+    console.error("GET /api/stats error:", err);
+    return NextResponse.json({ error: "Internal server error." }, { status: 500 });
+  }
 }
