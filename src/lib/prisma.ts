@@ -1,5 +1,5 @@
 import { PrismaNeonHttp } from "@prisma/adapter-neon";
-import { PrismaClient } from "../generated/prisma";
+import { PrismaClient } from "@prisma/client";
 
 function createPrismaClient() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
