@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { prisma } from "@/lib/prisma";
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -30,21 +31,34 @@ export async function POST(req: NextRequest) {
     const amount = (session.amount_total || 0) / 100;
     const meta = session.metadata || {};
 
-    console.log(`✅ Donation received: $${amount} | category: ${meta.category} | donor: ${meta.donorName || "anonymous"}`);
+    console.log(`Donation received: $${amount} | donor: ${meta.donorName || "anonymous"}`);
 
-    // TODO: Record in DB once Prisma is configured
-    // await prisma.donation.create({
-    //   data: {
-    //     amount,
-    //     currency: session.currency || "usd",
-    //     stripePaymentId: session.payment_intent as string,
-    //     donorEmail: session.customer_email,
-    //     donorName: meta.donorName || null,
-    //     isAnonymous: meta.anonymous === "true",
-    //     message: meta.message || null,
-    //     sponsorshipId: meta.sponsorshipId || null,
-    //   },
-    // });
+    try {
+      // Record donation in DB
+      if (meta.userId && meta.reportId) {
+        await prisma.donation.create({
+          data: {
+            userId: meta.userId,
+            reportId: meta.reportId,
+            amount,
+            currency: session.currency || "usd",
+            paymentMethod: "STRIPE",
+            stripePaymentId: session.payment_intent as string,
+            status: "CONFIRMED",
+            isAnonymous: meta.anonymous === "true",
+            donorMessage: meta.message || null,
+          },
+        });
+
+        // Update Report.raisedAmount
+        await prisma.report.update({
+          where: { id: meta.reportId },
+          data: { raisedAmount: { increment: amount } },
+        });
+      }
+    } catch (err) {
+      console.error("Failed to record donation:", err);
+    }
   }
 
   return NextResponse.json({ received: true });

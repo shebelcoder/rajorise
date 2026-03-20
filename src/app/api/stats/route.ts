@@ -1,31 +1,41 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const revalidate = 300;
+
 export async function GET() {
   try {
-    const [totalDonatedResult, familiesHelpedResult, studentsResult, waterTrucksResult] =
-      await Promise.all([
-        prisma.donation.aggregate({ _sum: { amount: true } }),
-        prisma.report.aggregate({
-          where: { status: "APPROVED" },
-          _sum: { familiesAffected: true },
-        }),
-        prisma.impactReport.aggregate({ _sum: { studentsSupported: true } }),
-        prisma.impactReport.aggregate({ _sum: { trucksDelivered: true } }),
-      ]);
+    const [donationAgg, casesHelped, activeCases, totalDonors] = await Promise.all([
+      prisma.donation.aggregate({
+        _sum: { amount: true },
+        where: { status: "CONFIRMED" },
+      }),
+      prisma.report.count({
+        where: { status: "COMPLETED" },
+      }),
+      prisma.report.count({
+        where: { status: { in: ["APPROVED", "FUNDING", "AWAITING_PROCUREMENT"] } },
+      }),
+      prisma.user.count({
+        where: { role: "DONOR" },
+      }),
+    ]);
 
     return NextResponse.json(
       {
-        totalDonated:      totalDonatedResult._sum.amount            ?? 0,
-        familiesHelped:    familiesHelpedResult._sum.familiesAffected ?? 0,
-        studentsSupported: studentsResult._sum.studentsSupported      ?? 0,
-        waterTrucks:       waterTrucksResult._sum.trucksDelivered     ?? 0,
-        lastUpdated:       new Date().toISOString(),
+        totalDonated: Number(donationAgg._sum.amount || 0),
+        casesHelped,
+        activeCases,
+        totalDonors,
+        lastUpdated: new Date().toISOString(),
       },
       { headers: { "Cache-Control": "s-maxage=300, stale-while-revalidate" } }
     );
   } catch (err) {
     console.error("GET /api/stats error:", err);
-    return NextResponse.json({ error: "Internal server error." }, { status: 500 });
+    return NextResponse.json(
+      { totalDonated: 0, casesHelped: 0, activeCases: 0, totalDonors: 0, lastUpdated: new Date().toISOString() },
+      { status: 500 }
+    );
   }
 }

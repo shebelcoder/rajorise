@@ -1,26 +1,29 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET /api/cases — public endpoint, returns APPROVED reports only
+export const revalidate = 60;
+
 export async function GET() {
   try {
     const cases = await prisma.report.findMany({
-      where: { status: "APPROVED" },
-      orderBy: { createdAt: "desc" },
+      where: {
+        status: { in: ["APPROVED", "FUNDING", "AWAITING_PROCUREMENT", "COMPLETED"] },
+      },
+      orderBy: [{ isUrgent: "desc" }, { createdAt: "desc" }],
       select: {
         id: true,
         slug: true,
         title: true,
+        summary: true,
         location: true,
-        category: true,
-        story: true,
-        familiesAffected: true,
-        amountNeeded: true,
-        raised: true,
-        images: true,
-        videoUrl: true,
+        status: true,
+        goalAmount: true,
+        raisedAmount: true,
+        currency: true,
+        featuredImageUrl: true,
+        isUrgent: true,
+        publishedAt: true,
         createdAt: true,
-        author: { select: { name: true } },
       },
     });
 
@@ -29,6 +32,6 @@ export async function GET() {
     });
   } catch (err) {
     console.error("GET /api/cases error:", err);
-    return NextResponse.json({ error: "Internal server error." }, { status: 500 });
+    return NextResponse.json([], { status: 500 });
   }
 }

@@ -3,23 +3,29 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// GET /api/reports — admin fetches all reports
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const user = session?.user as { id?: string; role?: string } | undefined;
 
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-    if (user?.role !== "ADMIN") {
+    if (!user?.id || user.role !== "ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const reports = await prisma.report.findMany({
       orderBy: { createdAt: "desc" },
-      include: {
-        author: { select: { name: true, email: true } },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        summary: true,
+        location: true,
+        status: true,
+        goalAmount: true,
+        raisedAmount: true,
+        journalistId: true,
+        isUrgent: true,
+        createdAt: true,
       },
     });
 

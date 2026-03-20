@@ -1,206 +1,222 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+// ── ENUMS ─────────────────────────────────────────────
+
 enum Role {
-  GUEST
   DONOR
   JOURNALIST
   ADMIN
+  PROCUREMENT_OFFICER
+  FIELD_AGENT
 }
 
 enum ReportStatus {
   PENDING
   APPROVED
   REJECTED
-}
-
-enum ProjectCategory {
-  WATER
-  FOOD
-  MEDICAL
-  EDUCATION
-  EMERGENCY
-}
-
-enum SponsorshipType {
-  STUDENT
-  FAMILY
-  VILLAGE_PROJECT
-}
-
-enum SponsorshipStatus {
-  OPEN
-  FULLY_FUNDED
+  FUNDING
+  AWAITING_PROCUREMENT
+  IN_PROCUREMENT
   COMPLETED
+  ARCHIVED
 }
+
+enum PurchaseOrderStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  PAID
+  FULFILLED
+  CANCELLED
+}
+
+// ── USERS ─────────────────────────────────────────────
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          Role      @default(DONOR)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String?
+  passwordHash   String?
+  role           Role      @default(DONOR)
+  isActive       Boolean   @default(true)
+  sessionVersion Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  lastLoginAt    DateTime?
+  lastLoginIp    String?
 
-  accounts          Account[]
-  sessions          Session[]
-  donations         Donation[]
-  reports           Report[]
-  userSponsorships  UserSponsorship[]
+  donations      Donation[]
+  purchaseOrders PurchaseOrder[]
+  auditLogs      AuditLog[]
+  permissions    UserPermission[]
+
+  @@index([email])
+  @@index([role])
 }
 
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
+model Permission {
+  id          String           @id @default(cuid())
+  key         String           @unique
+  description String?
+  users       UserPermission[]
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
+model UserPermission {
+  id           String     @id @default(cuid())
   userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permissionId String
+  grantedBy    String
+  createdAt    DateTime   @default(now())
+
+  user       User       @relation(fields: [userId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@unique([userId, permissionId])
 }
 
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-}
+// ── CASES / REPORTS ───────────────────────────────────
 
 model Report {
-  id          String       @id @default(cuid())
-  slug        String?      @unique
-  title       String
-  location    String
-  story       String       @db.Text
-  familiesAffected Int     @default(0)
-  amountNeeded Float       @default(0)
-  raised      Float        @default(0)
-  category    ProjectCategory
-  status      ReportStatus @default(PENDING)
-  images      String[]
-  videoUrl    String?
-  authorId    String
-  author      User         @relation(fields: [authorId], references: [id])
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id               String       @id @default(cuid())
+  slug             String       @unique
+  title            String
+  summary          String
+  fullStory        String       @db.Text
+  location         String?
+  status           ReportStatus @default(PENDING)
+  goalAmount       Decimal      @db.Decimal(12, 2)
+  raisedAmount     Decimal      @default(0) @db.Decimal(12, 2)
+  currency         String       @default("USD")
+  journalistId     String
+  approvedById     String?
+  approvedAt       DateTime?
+  rejectedReason   String?
+  featuredImageUrl String?
+  mediaUrls        String[]
+  isUrgent         Boolean      @default(false)
+  publishedAt      DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
-  sponsorships Sponsorship[]
-  donations    Donation[]
+  donations      Donation[]
+  fundPool       FundPool?
+  purchaseOrders PurchaseOrder[]
+  auditLogs      AuditLog[]
+
+  @@index([status])
+  @@index([slug])
 }
 
-model Sponsorship {
-  id          String            @id @default(cuid())
-  type        SponsorshipType
-  status      SponsorshipStatus @default(OPEN)
-  displayName String
-  story       String            @db.Text
-  goal        Float
-  raised      Float             @default(0)
-  images      String[]
-  videoUrl    String?
-  reportId    String?
-  report      Report?           @relation(fields: [reportId], references: [id])
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-
-  milestones   Milestone[]
-  donations    Donation[]
-  sponsors     UserSponsorship[]
-}
-
-model UserSponsorship {
-  id            String      @id @default(cuid())
-  userId        String
-  sponsorshipId String
-  user          User        @relation(fields: [userId], references: [id])
-  sponsorship   Sponsorship @relation(fields: [sponsorshipId], references: [id])
-  createdAt     DateTime    @default(now())
-
-  @@unique([userId, sponsorshipId])
-}
-
-model Milestone {
-  id            String      @id @default(cuid())
-  sponsorshipId String
-  sponsorship   Sponsorship @relation(fields: [sponsorshipId], references: [id])
-  date          DateTime
-  title         String
-  description   String
-  createdAt     DateTime    @default(now())
-}
+// ── DONATIONS ─────────────────────────────────────────
 
 model Donation {
-  id              String   @id @default(cuid())
-  amount          Float
-  currency        String   @default("usd")
-  stripePaymentId String?  @unique
-  donorEmail      String?
-  donorName       String?
-  userId          String?
-  user            User?    @relation(fields: [userId], references: [id])
-  reportId        String?
-  report          Report?  @relation(fields: [reportId], references: [id])
-  sponsorshipId   String?
-  sponsorship     Sponsorship? @relation(fields: [sponsorshipId], references: [id])
-  message         String?
-  isAnonymous     Boolean  @default(false)
-  createdAt       DateTime @default(now())
+  id              String    @id @default(cuid())
+  userId          String
+  reportId        String
+  amount          Decimal   @db.Decimal(12, 2)
+  currency        String    @default("USD")
+  paymentMethod   String    @default("STRIPE")
+  stripePaymentId String?   @unique
+  status          String    @default("PENDING")
+  isAnonymous     Boolean   @default(false)
+  donorMessage    String?
+  receiptSentAt   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  report Report @relation(fields: [reportId], references: [id])
+
+  @@index([reportId])
+  @@index([userId])
 }
+
+// ── FUND POOL (Financial Core) ────────────────────────
+
+model FundPool {
+  id             String   @id @default(cuid())
+  reportId       String   @unique
+  totalDeposited Decimal  @default(0) @db.Decimal(12, 2)
+  totalSpent     Decimal  @default(0) @db.Decimal(12, 2)
+  balance        Decimal  @default(0) @db.Decimal(12, 2)
+  status         String   @default("PENDING_CLEARANCE")
+  unlockedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  report Report        @relation(fields: [reportId], references: [id])
+  ledger LedgerEntry[]
+}
+
+model LedgerEntry {
+  id           String   @id @default(cuid())
+  fundPoolId   String
+  type         String
+  amount       Decimal  @db.Decimal(12, 2)
+  balanceAfter Decimal  @db.Decimal(12, 2)
+  reference    String
+  actorId      String
+  note         String?
+  createdAt    DateTime @default(now())
+
+  fundPool FundPool @relation(fields: [fundPoolId], references: [id])
+
+  @@index([fundPoolId])
+}
+
+// ── PURCHASE ORDERS ───────────────────────────────────
+
+model PurchaseOrder {
+  id                   String              @id @default(cuid())
+  poNumber             String              @unique
+  reportId             String
+  procurementOfficerId String
+  vendorName           String
+  vendorContact        String?
+  totalCost            Decimal             @db.Decimal(12, 2)
+  currency             String              @default("USD")
+  status               PurchaseOrderStatus @default(DRAFT)
+  description          String              @db.Text
+  receiptUrl           String?
+  approvedById         String?
+  approvedAt           DateTime?
+  paidAt               DateTime?
+  notes                String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  report  Report @relation(fields: [reportId], references: [id])
+  officer User   @relation(fields: [procurementOfficerId], references: [id])
+
+  @@index([reportId])
+  @@index([status])
+}
+
+// ── AUDIT LOG (append-only) ───────────────────────────
 
 model AuditLog {
-  id        String   @id @default(cuid())
-  action    String
-  actorId   String?
-  targetId  String?
-  metadata  Json?
-  createdAt DateTime @default(now())
-}
-
-model EmailReceipt {
   id         String   @id @default(cuid())
-  donationId String   @unique
-  sentAt     DateTime @default(now())
-  email      String
-}
+  action     String
+  actorId    String
+  actorRole  Role
+  actorIp    String   @default("unknown")
+  reportId   String?
+  targetId   String?
+  targetType String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
 
-model ImpactReport {
-  id          String   @id @default(cuid())
-  title       String
-  month       Int
-  year        Int
-  totalRaised Float
-  trucksDelivered Int  @default(0)
-  studentsSupported Int @default(0)
-  familiesHelped Int   @default(0)
-  summary     String   @db.Text
-  isPublished Boolean  @default(false)
-  publishedAt DateTime?
-  createdAt   DateTime @default(now())
+  actor  User    @relation(fields: [actorId], references: [id])
+  report Report? @relation(fields: [reportId], references: [id])
+
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
 }

@@ -1,86 +1,219 @@
 "use client";
 
 import { useState } from "react";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { Heart, Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // TODO: Call signIn from next-auth/react
-    setTimeout(() => { setLoading(false); window.location.href = "/dashboard"; }, 1000);
+    setError("");
+
+    const result = await signIn("donor-login", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      setError("Invalid email or password.");
+      setLoading(false);
+    } else {
+      window.location.href = "/account";
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setSuccess("Account created! Signing you in...");
+        // Auto sign in after registration
+        const result = await signIn("donor-login", {
+          email,
+          password,
+          redirect: false,
+        });
+        if (!result?.error) {
+          window.location.href = "/account";
+        } else {
+          setSuccess("Account created! Please sign in.");
+          setMode("login");
+        }
+      } else {
+        setError(data.error || "Registration failed.");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-20">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-600 to-blue-700 flex items-center justify-center">
-              <Heart className="w-5 h-5 text-white fill-white" />
-            </div>
-            <span className="font-bold text-2xl text-gray-900">Rajo<span className="text-green-600">Rise</span></span>
+    <div style={{ minHeight: "100vh", backgroundColor: "#f9fafb", display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem 1rem 4rem" }}>
+      <div style={{ maxWidth: "28rem", width: "100%" }}>
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", textDecoration: "none", marginBottom: "1rem" }}>
+            <Image src="/logo.png" alt="RajoRise" width={40} height={40} style={{ borderRadius: 10 }} />
+            <span style={{ fontWeight: 800, fontSize: "1.5rem", color: "#111827" }}>
+              Rajo<span style={{ color: "#16a34a" }}>Rise</span>
+            </span>
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-          <p className="text-gray-500">Sign in to track your donations and impact</p>
+          <h1 style={{ fontSize: "1.75rem", fontWeight: 700, color: "#111827", marginTop: "0.75rem" }}>
+            {mode === "login" ? "Welcome Back" : "Create Your Account"}
+          </h1>
+          <p style={{ color: "#6b7280", marginTop: "0.25rem" }}>
+            {mode === "login" ? "Sign in to track your donations and impact" : "Join RajoRise and start making a difference"}
+          </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div style={{
+          backgroundColor: "#fff", borderRadius: "1rem",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.08)", border: "1px solid #f3f4f6",
+          padding: "2rem",
+        }}>
+          <form onSubmit={mode === "login" ? handleLogin : handleRegister} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {mode === "register" && (
+              <div>
+                <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, color: "#374151", marginBottom: "0.5rem" }}>Full Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  placeholder="Your full name"
+                  style={{
+                    width: "100%", padding: "0.75rem 1rem",
+                    border: "1px solid #e5e7eb", borderRadius: "0.75rem",
+                    outline: "none", fontSize: "0.875rem",
+                  }}
+                />
+              </div>
+            )}
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, color: "#374151", marginBottom: "0.5rem" }}>Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="you@example.com"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-400 focus:ring-2 focus:ring-green-100 outline-none"
+                style={{
+                  width: "100%", padding: "0.75rem 1rem",
+                  border: "1px solid #e5e7eb", borderRadius: "0.75rem",
+                  outline: "none", fontSize: "0.875rem",
+                }}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-              <div className="relative">
+              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: 500, color: "#374151", marginBottom: "0.5rem" }}>Password</label>
+              <div style={{ position: "relative" }}>
                 <input
                   type={show ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  minLength={8}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 focus:border-green-400 focus:ring-2 focus:ring-green-100 outline-none"
+                  style={{
+                    width: "100%", padding: "0.75rem 3rem 0.75rem 1rem",
+                    border: "1px solid #e5e7eb", borderRadius: "0.75rem",
+                    outline: "none", fontSize: "0.875rem",
+                  }}
                 />
-                <button type="button" onClick={() => setShow(!show)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  {show ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                <button
+                  type="button"
+                  onClick={() => setShow(!show)}
+                  style={{
+                    position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)",
+                    background: "none", border: "none", cursor: "pointer", color: "#9ca3af",
+                  }}
+                >
+                  {show ? <EyeOff style={{ width: "1.25rem", height: "1.25rem" }} /> : <Eye style={{ width: "1.25rem", height: "1.25rem" }} />}
                 </button>
               </div>
+              {mode === "register" && (
+                <p style={{ fontSize: "0.75rem", color: "#9ca3af", marginTop: "0.25rem" }}>Minimum 8 characters</p>
+              )}
             </div>
 
-            <button type="submit" disabled={loading} className="w-full btn-primary justify-center py-3">
-              {loading ? "Signing in..." : "Sign In"}
+            {error && (
+              <div style={{
+                backgroundColor: "#fef2f2", border: "1px solid #fecaca",
+                borderRadius: "0.75rem", padding: "0.75rem 1rem",
+                fontSize: "0.8rem", color: "#dc2626",
+              }}>
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div style={{
+                backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0",
+                borderRadius: "0.75rem", padding: "0.75rem 1rem",
+                fontSize: "0.8rem", color: "#16a34a",
+              }}>
+                {success}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary"
+              style={{
+                width: "100%", padding: "0.85rem", justifyContent: "center",
+                opacity: loading ? 0.6 : 1, cursor: loading ? "wait" : "pointer",
+              }}
+            >
+              {loading ? "Please wait..." : mode === "login" ? "Sign In" : "Create Account"}
             </button>
           </form>
 
-          <div className="relative my-5">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
-            <div className="relative text-center"><span className="bg-white px-3 text-sm text-gray-400">or</span></div>
-          </div>
-
-          <button className="w-full flex items-center justify-center gap-3 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors font-medium text-gray-700">
-            <span className="text-xl">G</span> Continue with Google
-          </button>
-
-          <p className="text-center text-sm text-gray-500 mt-6">
-            No account?{" "}
-            <Link href="/register" className="text-green-600 font-semibold hover:underline">Create one free</Link>
-            {" "}— or{" "}
-            <Link href="/donate" className="text-green-600 hover:underline">donate without signing in</Link>
+          <p style={{ textAlign: "center", fontSize: "0.85rem", color: "#6b7280", marginTop: "1.5rem" }}>
+            {mode === "login" ? (
+              <>
+                No account?{" "}
+                <button onClick={() => { setMode("register"); setError(""); }} style={{ color: "#16a34a", fontWeight: 600, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+                  Create one free
+                </button>
+                {" "} — or{" "}
+                <Link href="/donate" style={{ color: "#16a34a", textDecoration: "underline" }}>donate without signing in</Link>
+              </>
+            ) : (
+              <>
+                Already have an account?{" "}
+                <button onClick={() => { setMode("login"); setError(""); }} style={{ color: "#16a34a", fontWeight: 600, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+                  Sign in
+                </button>
+              </>
+            )}
           </p>
         </div>
       </div>
