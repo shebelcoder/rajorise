@@ -1,13 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
+
+const reviewSchema = z.object({
+  action: z.enum(["approve", "reject"]),
+  reason: z.string().max(500).optional(),
+});
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const ip = getClientIp(req.headers);
+    const limit = rateLimit(`admin-review:${ip}`, { max: 20, windowSeconds: 60 });
+    if (!limit.success) {
+      return NextResponse.json({ error: "Too many requests." }, { status: 429 });
+    }
+
     const session = await getServerSession(authOptions);
     const user = session?.user as { id?: string; role?: string } | undefined;
 
@@ -16,10 +29,27 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const { action, reason } = await req.json();
 
-    if (action !== "approve" && action !== "reject") {
-      return NextResponse.json({ error: "Invalid action." }, { status: 400 });
+    // Validate the ID format (cuid)
+    if (!id || id.length < 10 || id.length > 50) {
+      return NextResponse.json({ error: "Invalid report ID." }, { status: 400 });
+    }
+
+    const body = await req.json();
+    const parsed = reviewSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message || "Invalid input." },
+        { status: 400 }
+      );
+    }
+
+    const { action, reason } = parsed.data;
+
+    // Verify report exists before updating
+    const existing = await prisma.report.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: "Report not found." }, { status: 404 });
     }
 
     const report = await prisma.report.update({
@@ -38,6 +68,7 @@ export async function PATCH(
         action: action === "approve" ? "REPORT_APPROVED" : "REPORT_REJECTED",
         actorId: user.id,
         actorRole: "ADMIN",
+        actorIp: ip,
         reportId: report.id,
         metadata: { title: report.title, reason: reason || null },
       },

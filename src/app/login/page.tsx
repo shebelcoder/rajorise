@@ -15,6 +15,9 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [forgot, setForgot] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMsg, setForgotMsg] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -205,6 +208,10 @@ export default function LoginPage() {
                 </button>
                 {" "} — or{" "}
                 <Link href="/donate" style={{ color: "#16a34a", textDecoration: "underline" }}>donate without signing in</Link>
+                <br />
+                <button onClick={() => setForgot(true)} style={{ color: "#6b7280", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontSize: "0.8rem", marginTop: "0.5rem" }}>
+                  Forgot your password?
+                </button>
               </>
             ) : (
               <>
@@ -216,6 +223,56 @@ export default function LoginPage() {
             )}
           </p>
         </div>
+
+        {/* Forgot Password Modal */}
+        {forgot && (
+          <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "1rem" }}>
+            <div style={{ backgroundColor: "#fff", borderRadius: "1rem", padding: "2rem", maxWidth: "24rem", width: "100%", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
+              <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "#111827", marginBottom: "0.5rem" }}>Reset Password</h2>
+              <p style={{ fontSize: "0.85rem", color: "#6b7280", marginBottom: "1rem" }}>Enter your email and we&apos;ll send a reset link (expires in 30 minutes).</p>
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                setForgotLoading(true);
+                setForgotMsg("");
+                try {
+                  const res = await fetch("/api/auth/forgot-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email }),
+                  });
+                  const data = await res.json();
+                  setForgotMsg(data.message || data.error || "Check your email.");
+                } catch {
+                  setForgotMsg("Network error.");
+                } finally {
+                  setForgotLoading(false);
+                }
+              }}>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="you@example.com"
+                  style={{ width: "100%", padding: "0.75rem 1rem", border: "1px solid #e5e7eb", borderRadius: "0.75rem", outline: "none", fontSize: "0.875rem", marginBottom: "0.75rem" }}
+                />
+                {forgotMsg && (
+                  <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "0.75rem", padding: "0.75rem", fontSize: "0.8rem", color: "#16a34a", marginBottom: "0.75rem" }}>
+                    {forgotMsg}
+                  </div>
+                )}
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <button type="submit" disabled={forgotLoading} style={{ flex: 1, padding: "0.75rem", backgroundColor: "#16a34a", color: "#fff", fontWeight: 600, borderRadius: "0.75rem", border: "none", cursor: forgotLoading ? "wait" : "pointer", opacity: forgotLoading ? 0.6 : 1 }}>
+                    {forgotLoading ? "Sending..." : "Send Reset Link"}
+                  </button>
+                  <button type="button" onClick={() => { setForgot(false); setForgotMsg(""); }} style={{ padding: "0.75rem 1rem", backgroundColor: "#f3f4f6", color: "#374151", fontWeight: 500, borderRadius: "0.75rem", border: "none", cursor: "pointer" }}>
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
