@@ -2,15 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
-/**
- * One-time setup endpoint to seed admin + journalist accounts.
- * Requires SETUP_SECRET query param for security.
- * DELETE THIS FILE after initial setup is complete.
- */
 export async function POST(req: NextRequest) {
   const secret = req.nextUrl.searchParams.get("secret");
-
-  // Require a secret to prevent unauthorized seeding
   if (secret !== process.env.NEXTAUTH_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -18,55 +11,24 @@ export async function POST(req: NextRequest) {
   const results: string[] = [];
 
   try {
-    // Admin account
-    const adminEmail = "admin@rajorise.com";
-    const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
-    if (!existingAdmin) {
-      await prisma.user.create({
-        data: {
-          email: adminEmail,
-          name: "RajoRise Admin",
-          passwordHash: await bcrypt.hash("Admin123!", 12),
-          role: "ADMIN",
-        },
-      });
-      results.push("Admin account created");
-    } else {
-      results.push("Admin account already exists");
-    }
+    const accounts = [
+      { email: "admin@rajorise.com", name: "RajoRise Admin", password: "Admin123!", role: "ADMIN" as const },
+      { email: "journalist@rajorise.com", name: "Field Journalist", password: "Journal123!", role: "JOURNALIST" as const },
+      { email: "donor@rajorise.com", name: "Test Donor", password: "Donor123!", role: "DONOR" as const },
+    ];
 
-    // Journalist account
-    const journalistEmail = "journalist@rajorise.com";
-    const existingJournalist = await prisma.user.findUnique({ where: { email: journalistEmail } });
-    if (!existingJournalist) {
-      await prisma.user.create({
-        data: {
-          email: journalistEmail,
-          name: "Field Journalist",
-          passwordHash: await bcrypt.hash("Journal123!", 12),
-          role: "JOURNALIST",
-        },
-      });
-      results.push("Journalist account created");
-    } else {
-      results.push("Journalist account already exists");
-    }
+    for (const acc of accounts) {
+      const hash = await bcrypt.hash(acc.password, 12);
 
-    // Test donor account
-    const donorEmail = "donor@rajorise.com";
-    const existingDonor = await prisma.user.findUnique({ where: { email: donorEmail } });
-    if (!existingDonor) {
-      await prisma.user.create({
-        data: {
-          email: donorEmail,
-          name: "Test Donor",
-          passwordHash: await bcrypt.hash("Donor123!", 12),
-          role: "DONOR",
-        },
+      await prisma.user.upsert({
+        where: { email: acc.email },
+        update: { passwordHash: hash, role: acc.role, isActive: true, name: acc.name },
+        create: { email: acc.email, name: acc.name, passwordHash: hash, role: acc.role },
       });
-      results.push("Donor account created");
-    } else {
-      results.push("Donor account already exists");
+
+      // Verify the hash works
+      const verify = await bcrypt.compare(acc.password, hash);
+      results.push(`${acc.role}: ${acc.email} → hash verified: ${verify}`);
     }
 
     return NextResponse.json({ success: true, results });
