@@ -9,6 +9,9 @@ import { rateLimit, getClientIp } from "@/lib/rate-limit";
 const submitSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters").max(200),
   location: z.string().max(200).optional(),
+  region: z.string().max(100).default("Gedo"),
+  district: z.string().max(100).optional(),
+  village: z.string().max(100).optional(),
   story: z.string().min(50, "Story must be at least 50 characters").max(10000),
   amountNeeded: z.string().refine((v) => !v || !isNaN(parseFloat(v)), "Must be a number").optional(),
   videoUrl: z.string().url("Invalid URL").max(500).optional().or(z.literal("")),
@@ -41,6 +44,9 @@ export async function POST(req: NextRequest) {
     const raw = {
       title: formData.get("title") as string || "",
       location: formData.get("location") as string || "",
+      region: formData.get("region") as string || "Gedo",
+      district: formData.get("district") as string || "",
+      village: formData.get("village") as string || "",
       story: formData.get("story") as string || "",
       amountNeeded: formData.get("amountNeeded") as string || "",
       videoUrl: formData.get("videoUrl") as string || "",
@@ -54,7 +60,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, location, story, amountNeeded } = parsed.data;
+    const { title, location, region, district, village, story, amountNeeded } = parsed.data;
     const slug = `${slugify(sanitizePlain(title))}-${Date.now().toString(36)}`;
 
     const report = await prisma.report.create({
@@ -64,6 +70,10 @@ export async function POST(req: NextRequest) {
         summary: sanitizePlain(story.slice(0, 300)),
         fullStory: sanitizePlain(story),
         location: location ? sanitizePlain(location) : null,
+        country: "Somalia",
+        region: sanitizePlain(region || "Gedo"),
+        district: district ? sanitizePlain(district) : null,
+        village: village ? sanitizePlain(village) : null,
         goalAmount: parseFloat(amountNeeded || "0") || 0,
         currency: "USD",
         journalistId: user.id,

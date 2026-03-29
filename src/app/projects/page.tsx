@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { MapPin, ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { formatLocation } from "@/lib/locations";
+import RegionFilter from "@/components/RegionFilter";
 
 export const revalidate = 60;
 
@@ -17,6 +19,10 @@ async function getCases() {
         title: true,
         summary: true,
         location: true,
+        country: true,
+        region: true,
+        district: true,
+        village: true,
         status: true,
         goalAmount: true,
         raisedAmount: true,
@@ -49,6 +55,19 @@ async function getStats() {
 export default async function ProjectsPage() {
   const [cases, stats] = await Promise.all([getCases(), getStats()]);
 
+  // Serialize Decimal fields for client component
+  const serializedCases = cases.map((c) => ({
+    ...c,
+    goalAmount: Number(c.goalAmount),
+    raisedAmount: Number(c.raisedAmount),
+    locationFormatted: formatLocation({
+      village: c.village,
+      district: c.district,
+      region: c.region,
+      country: c.country,
+    }),
+  }));
+
   return (
     <div style={{ background: "#f9fafb", minHeight: "100vh" }}>
       <div className="hero-band">
@@ -59,12 +78,21 @@ export default async function ProjectsPage() {
           <p style={{ fontSize: "1rem", color: "rgba(255,255,255,0.75)", maxWidth: 520, margin: "0 auto" }}>
             Every case is verified by our admin team and documented by field journalists.
           </p>
+          {/* Operating region banner */}
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            backgroundColor: "rgba(255,255,255,0.15)", backdropFilter: "blur(4px)",
+            borderRadius: 99, padding: "6px 16px", marginTop: 16, fontSize: 13,
+          }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#4ade80", display: "inline-block" }} />
+            Currently operating in Gedo Region, Somalia
+          </div>
         </div>
       </div>
 
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "3rem 1.25rem" }}>
         {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem", marginBottom: "3rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem", marginBottom: "2rem" }}>
           {[
             { label: "Active Cases", value: stats.activeProjects.toString() },
             { label: "Total Raised", value: "$" + stats.totalRaised.toLocaleString() },
@@ -77,93 +105,8 @@ export default async function ProjectsPage() {
           ))}
         </div>
 
-        {cases.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "5rem 1rem", color: "#6b7280" }}>
-            <p style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>No active cases right now.</p>
-            <p style={{ fontSize: "0.9rem" }}>Check back soon — our journalists are in the field.</p>
-          </div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
-            {cases.map((c) => {
-              const goal = Number(c.goalAmount);
-              const raised = Number(c.raisedAmount);
-              const pct = goal > 0 ? Math.min(Math.round((raised / goal) * 100), 100) : 0;
-              const isFullyFunded = pct >= 100;
-
-              return (
-                <div key={c.id} className="card" style={{ display: "flex", flexDirection: "column" }}>
-                  <div style={{
-                    height: 160, background: "linear-gradient(135deg, #16a34a 0%, #1d4ed8 100%)",
-                    borderRadius: "12px 12px 0 0", position: "relative",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    {c.isUrgent && (
-                      <span style={{
-                        position: "absolute", top: 12, left: 12,
-                        background: "#dc2626", color: "#fff", fontSize: "0.7rem",
-                        fontWeight: 700, padding: "0.2rem 0.6rem", borderRadius: 99,
-                      }}>
-                        URGENT
-                      </span>
-                    )}
-                    <span style={{
-                      position: "absolute", top: 12, right: 12,
-                      background: isFullyFunded ? "rgba(234,179,8,0.9)" : "rgba(255,255,255,0.9)",
-                      color: isFullyFunded ? "#fff" : "#16a34a",
-                      fontSize: "0.7rem", fontWeight: 700, padding: "0.2rem 0.6rem", borderRadius: 99,
-                    }}>
-                      {isFullyFunded ? "Fully Funded" : c.status}
-                    </span>
-                  </div>
-
-                  <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", flex: 1 }}>
-                    <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#111827", marginBottom: "0.3rem", lineHeight: 1.3 }}>
-                      {c.title}
-                    </h3>
-                    {c.location && (
-                      <p style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.75rem", color: "#9ca3af", marginBottom: "0.75rem" }}>
-                        <MapPin size={11} /> {c.location}
-                      </p>
-                    )}
-                    <p style={{
-                      fontSize: "0.875rem", color: "#4b5563", lineHeight: 1.6, flex: 1,
-                      marginBottom: "1rem", display: "-webkit-box",
-                      WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-                    }}>
-                      {c.summary}
-                    </p>
-
-                    {goal > 0 && (
-                      <div style={{ marginBottom: "1rem" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.4rem" }}>
-                          <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "#111827" }}>${raised.toLocaleString()}</span>
-                          <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>of ${goal.toLocaleString()} &middot; {pct}%</span>
-                        </div>
-                        <div className="progress-bar">
-                          <div className="progress-fill" style={{ width: `${pct}%` }} />
-                        </div>
-                      </div>
-                    )}
-
-                    <Link
-                      href={`/donate?case=${c.slug}`}
-                      style={{
-                        display: "block", textAlign: "center", padding: "0.7rem",
-                        borderRadius: 12, fontWeight: 700, fontSize: "0.875rem",
-                        textDecoration: "none", transition: "background 0.15s ease",
-                        background: isFullyFunded ? "#f3f4f6" : "#16a34a",
-                        color: isFullyFunded ? "#9ca3af" : "#fff",
-                        cursor: isFullyFunded ? "default" : "pointer",
-                      }}
-                    >
-                      {isFullyFunded ? "Fully Funded" : "Donate to This Case"}
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        {/* Region filter + cases grid */}
+        <RegionFilter cases={serializedCases} />
 
         <div style={{ marginTop: "4rem", background: "#fff", borderRadius: 20, padding: "3rem 2rem", border: "1px solid #e5e7eb", textAlign: "center" }}>
           <h2 style={{ fontSize: "1.5rem", fontWeight: 800, color: "#111827", marginBottom: "0.5rem" }}>
@@ -172,7 +115,11 @@ export default async function ProjectsPage() {
           <p style={{ color: "#6b7280", marginBottom: "1.5rem", fontSize: "0.95rem" }}>
             Make a general donation and our team allocates it where it&apos;s needed most.
           </p>
-          <Link href="/donate" className="btn-green btn" style={{ fontSize: "0.95rem", padding: "0.75rem 2rem" }}>
+          <Link href="/donate" style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            backgroundColor: "#16a34a", color: "#fff", padding: "0.75rem 2rem",
+            borderRadius: 12, fontWeight: 700, textDecoration: "none", fontSize: "0.95rem",
+          }}>
             Make a General Donation <ArrowRight size={16} />
           </Link>
         </div>

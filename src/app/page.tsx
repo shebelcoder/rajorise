@@ -3,6 +3,7 @@ import { ArrowRight, Droplets, BookOpen, UtensilsCrossed, Heart, Shield, Eye, Za
 import DonationWidget from "@/components/DonationWidget";
 import StatsBar from "@/components/StatsBar";
 import SponsorshipCard from "@/components/SponsorshipCard";
+import SomaliaMapSection from "@/components/SomaliaMapSection";
 
 const featuredSponsors = [
   {
@@ -152,6 +153,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* WHERE WE OPERATE — Interactive Somalia Map */}
+      <SomaliaMapSection />
 
       {/* FEATURED SPONSORSHIPS */}
       <section className="py-20 bg-gray-50">

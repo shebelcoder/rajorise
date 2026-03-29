@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Upload, MapPin, Users, DollarSign, CheckCircle, AlertCircle } from "lucide-react";
+import { REGIONS, getDistricts, getVillages } from "@/lib/locations";
 
 const CATEGORIES = [
   { id: "WATER", label: "Water Crisis", icon: "💧" },
@@ -15,12 +16,18 @@ export default function JournalistUploadPage() {
   const [form, setForm] = useState({
     title: "",
     location: "",
+    region: "Gedo",
+    district: "",
+    village: "",
     category: "",
     story: "",
     familiesAffected: "",
     amountNeeded: "",
     videoUrl: "",
   });
+  const activeRegions = REGIONS.filter((r) => r.active);
+  const districts = getDistricts(form.region);
+  const villages = getVillages(form.region, form.district);
   const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -63,7 +70,7 @@ export default function JournalistUploadPage() {
           <h2 className="text-2xl font-bold text-white mb-3">Report Submitted!</h2>
           <p className="text-gray-400 mb-6">Your report is now pending admin review. It will be published once approved.</p>
           <button
-            onClick={() => { setSuccess(false); setForm({ title: "", location: "", category: "", story: "", familiesAffected: "", amountNeeded: "", videoUrl: "" }); setImages([]); }}
+            onClick={() => { setSuccess(false); setForm({ title: "", location: "", region: "Gedo", district: "", village: "", category: "", story: "", familiesAffected: "", amountNeeded: "", videoUrl: "" }); setImages([]); }}
             className="bg-green-600 hover:bg-green-500 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
           >
             Submit Another Report
@@ -95,20 +102,61 @@ export default function JournalistUploadPage() {
             />
           </div>
 
-          {/* Location + Category */}
+          {/* Location: Region + District + Village + Category */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
-                <MapPin className="w-3.5 h-3.5" /> Location *
+                <MapPin className="w-3.5 h-3.5" /> Region *
               </label>
-              <input
-                type="text"
-                value={form.location}
-                onChange={set("location")}
+              <select
+                value={form.region}
+                onChange={(e) => setForm((f) => ({ ...f, region: e.target.value, district: "", village: "" }))}
                 required
-                placeholder="Village, Region, Country"
-                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:border-green-500 outline-none"
-              />
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white focus:border-green-500 outline-none"
+              >
+                {activeRegions.map((r) => (
+                  <option key={r.name} value={r.name}>{r.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">District *</label>
+              <select
+                value={form.district}
+                onChange={(e) => setForm((f) => ({ ...f, district: e.target.value, village: "" }))}
+                required
+                className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white focus:border-green-500 outline-none"
+              >
+                <option value="">Select district</option>
+                {districts.map((d) => (
+                  <option key={d.name} value={d.name}>{d.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Village (optional)</label>
+              {villages.length > 0 ? (
+                <select
+                  value={form.village}
+                  onChange={set("village")}
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white focus:border-green-500 outline-none"
+                >
+                  <option value="">Select village</option>
+                  {villages.map((v) => (
+                    <option key={v} value={v}>{v}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={form.village}
+                  onChange={set("village")}
+                  placeholder="Enter village name"
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:border-green-500 outline-none"
+                />
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Category *</label>
