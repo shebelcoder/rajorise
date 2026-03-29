@@ -15,7 +15,7 @@ const checkoutSchema = z.object({
   currency: z.string().length(3).default("usd"),
   category: z.string().max(50).default("general"),
   name: z.string().max(100).optional(),
-  email: z.string().email().max(255).optional(),
+  email: z.string().email().max(255).optional().or(z.literal("")),
   message: z.string().max(500).optional(),
   anonymous: z.boolean().default(false),
   reportId: z.string().max(50).optional(),
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: "payment",
-      customer_email: email || undefined,
+      customer_email: email && email.includes("@") ? email : undefined,
       metadata,
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/donate/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/donate/cancel`,
@@ -73,7 +73,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error("Stripe checkout error:", error);
+    const msg = error instanceof Error ? error.message : "Unknown error";
+    console.error("Stripe checkout error:", msg, error);
+
+    // Return more specific error in non-production for debugging
+    if (process.env.NODE_ENV !== "production") {
+      return NextResponse.json({ error: `Checkout failed: ${msg}` }, { status: 500 });
+    }
     return NextResponse.json({ error: "Failed to create checkout session." }, { status: 500 });
   }
 }
