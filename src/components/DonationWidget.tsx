@@ -73,7 +73,22 @@ export default function DonationWidget({ compact = false }: { compact?: boolean 
       <button
         onClick={handleDonate}
         disabled={!amount || loading}
-        className="w-full btn-primary justify-center text-base py-4 disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{
+          width: "100%",
+          padding: "1rem",
+          backgroundColor: !amount || loading ? "#9ca3af" : "#16a34a",
+          color: "#fff",
+          fontWeight: 700,
+          fontSize: "1rem",
+          borderRadius: "0.75rem",
+          border: "none",
+          cursor: !amount || loading ? "not-allowed" : "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "0.5rem",
+          transition: "background-color 0.2s",
+        }}
       >
         {loading ? (
           <span className="flex items-center gap-2">
