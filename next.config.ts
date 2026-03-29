@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   async headers() {
@@ -6,22 +7,15 @@ const nextConfig: NextConfig = {
       {
         source: "/(.*)",
         headers: [
-          // Prevent clickjacking
           { key: "X-Frame-Options", value: "DENY" },
-          // Prevent MIME-type sniffing
           { key: "X-Content-Type-Options", value: "nosniff" },
-          // Control referrer information
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          // Permissions policy
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-          // XSS protection (legacy browsers)
           { key: "X-XSS-Protection", value: "1; mode=block" },
-          // Strict Transport Security (HTTPS only)
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
         ],
       },
       {
-        // CORS: only allow API routes from our own domain
         source: "/api/(.*)",
         headers: [
           { key: "Access-Control-Allow-Origin", value: process.env.NEXT_PUBLIC_BASE_URL || "https://rajorise.vercel.app" },
@@ -34,4 +28,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG || "rajorise",
+  project: process.env.SENTRY_PROJECT || "rajorise",
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  tunnelRoute: "/monitoring",
+  sourcemaps: { deleteSourcemapsAfterUpload: true },
+});
