@@ -17,6 +17,7 @@ enum Role {
 }
 
 enum ReportStatus {
+  DRAFT
   PENDING
   APPROVED
   REJECTED
