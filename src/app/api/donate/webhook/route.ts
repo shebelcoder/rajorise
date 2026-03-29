@@ -3,9 +3,7 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 
 function getStripe() {
-  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: "2026-02-25.clover",
-  });
+  return new Stripe(process.env.STRIPE_SECRET_KEY!);
 }
 
 export async function POST(req: NextRequest) {
