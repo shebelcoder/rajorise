@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, XCircle } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle, XCircle, Pencil } from "lucide-react";
 
 interface CaseItem {
   id: string; title: string; slug: string; status: string; region: string;
@@ -92,6 +93,10 @@ export default function AdminCasesTable({ cases }: { cases: CaseItem[] }) {
                   <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, backgroundColor: sc.bg, color: sc.text, textTransform: "uppercase" }}>
                     {c.status}
                   </span>
+
+                  <Link href={`/admin/cases/${c.id}/edit`} style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600, backgroundColor: "#21262d", color: "#e6edf3", border: "1px solid #30363d", textDecoration: "none" }}>
+                    <Pencil size={12} /> Edit
+                  </Link>
 
                   {c.status === "PENDING" && (
                     <div style={{ display: "flex", gap: 6 }}>
