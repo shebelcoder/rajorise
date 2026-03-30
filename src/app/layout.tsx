@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import Providers from "@/components/Providers";
+import LayoutShell from "@/components/LayoutShell";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -32,11 +31,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${inter.variable} antialiased`} style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
         <Providers>
-          <Navbar />
-          <main style={{ paddingTop: "4rem" }}>
+          <LayoutShell>
             {children}
-          </main>
-          <Footer />
+          </LayoutShell>
         </Providers>
       </body>
     </html>

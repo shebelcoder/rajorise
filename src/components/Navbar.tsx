@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Menu, X, User } from "lucide-react";
 
 const navLinks = [
   { href: "/projects",  label: "Projects" },
@@ -17,6 +18,8 @@ const navLinks = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const { data: session } = useSession();
+  const isLoggedIn = !!session?.user;
 
   return (
     <header
@@ -58,10 +61,21 @@ export default function Navbar() {
 
         {/* Desktop CTA */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }} className="hidden md:flex">
-          <Link href="/login" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#374151", textDecoration: "none" }}>
-            Sign In
-          </Link>
-          <Link href="/donate" className="btn-primary" style={{ padding: "0.5rem 1.25rem", fontSize: "0.875rem" }}>
+          {isLoggedIn ? (
+            <Link href="/account" style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.875rem", fontWeight: 500, color: "#374151", textDecoration: "none" }}>
+              <User size={16} /> {session.user?.name || "Account"}
+            </Link>
+          ) : (
+            <Link href="/login" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#374151", textDecoration: "none" }}>
+              Sign In
+            </Link>
+          )}
+          <Link href="/donate" style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            padding: "0.5rem 1.25rem", fontSize: "0.875rem", fontWeight: 700,
+            backgroundColor: "#16a34a", color: "#fff", borderRadius: "0.75rem",
+            textDecoration: "none",
+          }}>
             Donate Now
           </Link>
         </div>
@@ -91,8 +105,12 @@ export default function Navbar() {
             </Link>
           ))}
           <div style={{ paddingTop: "0.75rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            <Link href="/login" style={{ fontSize: "0.875rem", fontWeight: 500, color: "#374151", textDecoration: "none" }}>Sign In</Link>
-            <Link href="/donate" className="btn-primary" style={{ textAlign: "center", padding: "0.65rem" }}>Donate Now</Link>
+            {isLoggedIn ? (
+              <Link href="/account" onClick={() => setOpen(false)} style={{ fontSize: "0.875rem", fontWeight: 500, color: "#374151", textDecoration: "none" }}>My Account</Link>
+            ) : (
+              <Link href="/login" onClick={() => setOpen(false)} style={{ fontSize: "0.875rem", fontWeight: 500, color: "#374151", textDecoration: "none" }}>Sign In</Link>
+            )}
+            <Link href="/donate" onClick={() => setOpen(false)} style={{ textAlign: "center", padding: "0.65rem", backgroundColor: "#16a34a", color: "#fff", borderRadius: "0.75rem", fontWeight: 700, textDecoration: "none" }}>Donate Now</Link>
           </div>
         </div>
       )}
