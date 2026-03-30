@@ -16,14 +16,16 @@ import {
   LogOut,
   GraduationCap,
   Users,
+  BookOpen,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/journalist/dashboard", icon: LayoutDashboard },
-  { label: "My Cases", href: "/journalist/cases", icon: FolderOpen },
+  { label: "My Content", href: "/journalist/cases", icon: FolderOpen },
   { label: "Create Case", href: "/journalist/cases/new", icon: Plus, accent: true },
   { label: "Add Student", href: "/journalist/students/new", icon: GraduationCap, accent: true },
   { label: "Add Family", href: "/journalist/families/new", icon: Users, accent: true },
+  { label: "Write Story", href: "/journalist/stories/new", icon: BookOpen, accent: true },
 ];
 
 const FILTER_ITEMS = [

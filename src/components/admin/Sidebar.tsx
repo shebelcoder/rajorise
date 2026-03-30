@@ -17,6 +17,7 @@ import {
   Shield,
   GraduationCap,
   Home,
+  BookOpen,
 } from "lucide-react";
 
 const NAV = [
@@ -25,6 +26,7 @@ const NAV = [
   { label: "Cases", href: "/admin/cases", icon: FolderOpen },
   { label: "Students", href: "/admin/students", icon: GraduationCap },
   { label: "Families", href: "/admin/families", icon: Home },
+  { label: "Stories", href: "/admin/stories", icon: BookOpen },
   { label: "Journalists", href: "/admin/journalists", icon: Camera },
   { label: "Finance", href: "/admin/finance", icon: DollarSign },
   { label: "Operations", href: "/admin/operations", icon: Globe },
