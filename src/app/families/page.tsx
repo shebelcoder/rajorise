@@ -1,110 +1,134 @@
 import Link from "next/link";
 import { MapPin, Users, Heart, ArrowRight } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { formatLocation } from "@/lib/locations";
 
-const families = [
-  { id: "1", name: "Al-Hassan Family", location: "Northern Kenya", members: 6, situation: "Drought", story: "The Al-Hassan family lost their livestock to drought. With no income and 4 children, they need food support for 3 months.", goal: 250, raised: 180, status: "OPEN", emoji: "👨‍👩‍👧‍👦", need: "Food Support", imgClass: "proj-img-food" },
-  { id: "2", name: "Nuur Family", location: "Afar, Ethiopia", members: 8, situation: "Flood displacement", story: "Flash floods destroyed their home. 8 family members are sheltered in a temporary camp with no belongings.", goal: 350, raised: 350, status: "FULLY_FUNDED", emoji: "👨‍👩‍👦‍👦", need: "Emergency Relief", imgClass: "proj-img-emergency" },
-  { id: "3", name: "Dirie Family", location: "Mogadishu, Somalia", members: 5, situation: "Drought + illness", story: "The father is ill and unable to work. The mother alone cannot feed 3 children. They need medical and food support.", goal: 400, raised: 120, status: "OPEN", emoji: "👨‍👩‍👧", need: "Food + Medical", imgClass: "proj-img-medical" },
-  { id: "4", name: "Warsame Family", location: "Mandera, Kenya", members: 7, situation: "Water crisis", story: "Located 15km from the nearest water source, they spend 6 hours daily collecting water. Support water delivery.", goal: 150, raised: 90, status: "OPEN", emoji: "👨‍👩‍👧‍👦", need: "Water Delivery", imgClass: "proj-img-water" },
-  { id: "5", name: "Abdi Family", location: "Garissa, Kenya", members: 10, situation: "Orphan household", story: "Grandmother Halima cares for 8 grandchildren after losing her children. She needs consistent food and school support.", goal: 600, raised: 200, status: "OPEN", emoji: "👵🏿", need: "Food + Education", imgClass: "proj-img-family" },
-  { id: "6", name: "Jama Family", location: "Hargeisa, Somaliland", members: 4, situation: "Drought", story: "A young couple with 2 toddlers whose farm was destroyed. They completed their program — now fully self-sufficient.", goal: 200, raised: 200, status: "COMPLETED", emoji: "👨‍👩‍👧‍👦", need: "Livelihood Support", imgClass: "proj-img-food" },
-];
+export const revalidate = 60;
 
-export default function FamiliesPage() {
+async function getFamilies() {
+  try {
+    return await prisma.family.findMany({
+      where: { status: { in: ["APPROVED", "FUNDING"] }, isActive: true },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch {
+    return [];
+  }
+}
+
+export default async function FamiliesPage() {
+  const families = await getFamilies();
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero */}
-      <div className="gradient-hero text-white py-16 px-4">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 mb-5 text-sm font-medium">
-            <Users className="w-4 h-4" /> Every family has a story
+    <div style={{ minHeight: "100vh", backgroundColor: "#f9fafb" }}>
+      <div className="gradient-hero" style={{ color: "#fff", padding: "4rem 1rem" }}>
+        <div style={{ maxWidth: 720, margin: "0 auto", textAlign: "center" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 99, padding: "6px 16px", marginBottom: 20, fontSize: 14, fontWeight: 500 }}>
+            <Users style={{ width: 16, height: 16 }} /> Support families in need
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold mb-3">
-            Families Needing{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-yellow-300">Your Help</span>
+          <h1 style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 800, marginBottom: 12 }}>
+            Families Needing Help
           </h1>
-          <p className="text-white/75 text-lg">
-            Sponsor a specific family and follow their journey from crisis to stability.
+          <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "1.1rem" }}>
+            Every family has a story. Your donation provides food, shelter, and hope.
           </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Privacy note */}
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-10 flex items-start gap-3">
-          <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 text-blue-600 font-bold text-sm mt-0.5">i</div>
-          <p className="text-sm text-blue-800">
-            <strong>Privacy first:</strong> We use family names or anonymous IDs only. No full names, exact addresses, or sensitive personal data. All profiles are admin-reviewed before publishing.
-          </p>
-        </div>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "3rem 1.25rem" }}>
+        {families.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "5rem 1rem", color: "#6b7280" }}>
+            <p style={{ fontSize: "1.1rem", marginBottom: 8 }}>No families listed right now.</p>
+            <p style={{ fontSize: "0.9rem" }}>Check back soon — our journalists are documenting new cases.</p>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 24 }}>
+            {families.map((f) => {
+              const goal = Number(f.goalAmount);
+              const raised = Number(f.raisedAmount);
+              const pct = goal > 0 ? Math.min(Math.round((raised / goal) * 100), 100) : 0;
+              const isFullyFunded = pct >= 100;
+              const loc = formatLocation({ village: f.village, district: f.district, region: f.region, country: f.country });
 
-        {/* Families grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
-          {families.map((f) => {
-            const pct = Math.min(Math.round((f.raised / f.goal) * 100), 100);
-            return (
-              <div key={f.id} className="story-card flex flex-col">
-                {/* Image area */}
-                <div className={`relative h-48 flex flex-col items-center justify-center ${f.imgClass}`}>
-                  <span className="text-6xl drop-shadow">{f.emoji}</span>
-                  <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
-                    <span className="badge badge-green bg-white/90">{f.members} members</span>
-                    {f.status === "OPEN"
-                      ? <span className="badge badge-green bg-white/90">Active</span>
-                      : f.status === "FULLY_FUNDED"
-                      ? <span className="badge badge-gold bg-white/90">Fully Funded</span>
-                      : <span className="badge badge-blue bg-white/90">Completed ✓</span>}
-                  </div>
-                  <div className="absolute bottom-3 left-3 bg-black/30 text-white text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm">
-                    {f.situation}
-                  </div>
-                </div>
-
-                <div className="p-5 flex flex-col flex-1">
-                  <h3 className="font-bold text-gray-900 text-lg mb-1">{f.name}</h3>
-                  <div className="flex items-center gap-1 text-xs text-gray-400 mb-3">
-                    <MapPin className="w-3 h-3" />{f.location}
-                  </div>
-                  <p className="text-sm text-gray-600 line-clamp-3 mb-4 flex-1">{f.story}</p>
-
-                  <div className="mb-4">
-                    <div className="flex justify-between items-center text-sm mb-1.5">
-                      <span className="font-bold text-gray-900">${f.raised} raised</span>
-                      <span className="text-gray-400 text-xs">of ${f.goal} · {pct}%</span>
+              return (
+                <div key={f.id} style={{ backgroundColor: "#fff", borderRadius: 16, border: "1px solid #e5e7eb", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                  <div style={{
+                    height: 180,
+                    background: f.imageUrl ? `url(${f.imageUrl}) center/cover` : "linear-gradient(135deg, #ea580c, #dc2626)",
+                    position: "relative", display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {!f.imageUrl && <span style={{ fontSize: 60 }}>👨‍👩‍👧‍👦</span>}
+                    <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
+                      {f.need && (
+                        <span style={{ backgroundColor: "rgba(255,255,255,0.9)", color: "#ea580c", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99 }}>{f.need}</span>
+                      )}
+                      <span style={{
+                        backgroundColor: "rgba(255,255,255,0.9)",
+                        color: isFullyFunded ? "#ca8a04" : "#16a34a",
+                        fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99,
+                      }}>
+                        {isFullyFunded ? "Fully Funded ✓" : "Active"}
+                      </span>
                     </div>
-                    <div className="progress-bar">
-                      <div className="progress-fill" style={{ width: `${pct}%` }} />
-                    </div>
+                    {f.members && (
+                      <span style={{ position: "absolute", bottom: 10, left: 10, backgroundColor: "rgba(0,0,0,0.5)", color: "#fff", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 99, display: "flex", alignItems: "center", gap: 4 }}>
+                        <Users size={11} /> {f.members} members
+                      </span>
+                    )}
                   </div>
 
-                  {f.status === "OPEN" ? (
+                  <div style={{ padding: 20, display: "flex", flexDirection: "column", flex: 1 }}>
+                    <h3 style={{ fontWeight: 700, color: "#111827", fontSize: "1.1rem", marginBottom: 4 }}>{f.name}</h3>
+                    <p style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "#9ca3af", marginBottom: 4 }}>
+                      <MapPin size={11} /> {loc}
+                    </p>
+                    {f.situation && (
+                      <p style={{ fontSize: 12, color: "#ea580c", fontWeight: 600, marginBottom: 12 }}>{f.situation}</p>
+                    )}
+                    <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.6, flex: 1, marginBottom: 16, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      {f.story}
+                    </p>
+
+                    {goal > 0 && (
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6, fontSize: 14 }}>
+                          <span style={{ fontWeight: 700, color: "#111827" }}>${raised} raised</span>
+                          <span style={{ fontSize: 12, color: "#9ca3af" }}>of ${goal} · {pct}%</span>
+                        </div>
+                        <div style={{ height: 6, backgroundColor: "#e5e7eb", borderRadius: 99 }}>
+                          <div style={{ height: "100%", backgroundColor: isFullyFunded ? "#eab308" : "#16a34a", borderRadius: 99, width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    )}
+
                     <Link
-                      href={`/donate?sponsorship=${f.id}&type=family&name=${encodeURIComponent(f.name)}`}
-                      className="w-full text-center py-3 rounded-xl font-bold text-sm bg-green-600 hover:bg-green-700 text-white shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2"
+                      href={isFullyFunded ? "#" : `/donate?type=family&name=${encodeURIComponent(f.name)}`}
+                      style={{
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                        padding: "12px", borderRadius: 12, fontWeight: 700, fontSize: 14, textDecoration: "none",
+                        backgroundColor: isFullyFunded ? "#fef9c3" : "#16a34a",
+                        color: isFullyFunded ? "#a16207" : "#fff",
+                        border: isFullyFunded ? "1px solid #fde68a" : "none",
+                      }}
                     >
-                      <Heart className="w-4 h-4 fill-white" /> Support This Family
+                      {isFullyFunded ? "Fully Funded ✓" : <><Heart size={16} style={{ fill: "#fff" }} /> Support {f.name}</>}
                     </Link>
-                  ) : f.status === "FULLY_FUNDED" ? (
-                    <div className="w-full text-center py-3 rounded-xl font-bold text-sm bg-yellow-50 text-yellow-700 border border-yellow-200">
-                      Fully Funded ✓
-                    </div>
-                  ) : (
-                    <div className="w-full text-center py-3 rounded-xl font-bold text-sm bg-blue-50 text-blue-700 border border-blue-200">
-                      Mission Completed ✓
-                    </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
-        {/* CTA */}
-        <div className="mt-14 gradient-hero text-white rounded-3xl p-10 text-center">
-          <h2 className="text-3xl font-bold mb-3">Make a General Family Aid Donation</h2>
-          <p className="text-white/75 mb-6">Funds go to the most urgent family cases in our system.</p>
-          <Link href="/donate?category=food" className="btn-gold inline-flex items-center gap-2">
-            Donate to Family Aid <ArrowRight className="w-4 h-4" />
+        <div className="gradient-hero" style={{ marginTop: "3rem", color: "#fff", borderRadius: 20, padding: "3rem 2rem", textAlign: "center" }}>
+          <h2 style={{ fontSize: "1.75rem", fontWeight: 800, marginBottom: 12 }}>Help more families</h2>
+          <p style={{ color: "rgba(255,255,255,0.75)", marginBottom: 24 }}>General donations are distributed to the families that need it most.</p>
+          <Link href="/donate?category=food" style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            backgroundColor: "#eab308", color: "#000", padding: "12px 24px",
+            borderRadius: 12, fontWeight: 700, textDecoration: "none",
+          }}>
+            Support Families Fund <ArrowRight size={16} />
           </Link>
         </div>
       </div>

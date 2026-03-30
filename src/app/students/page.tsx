@@ -1,117 +1,154 @@
 import Link from "next/link";
 import { MapPin, GraduationCap, ArrowRight, Heart } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { formatLocation } from "@/lib/locations";
 
-const students = [
-  { id: "1", name: "Ayaan", age: 12, location: "Somali Region, Ethiopia", story: "Ayaan dreams of becoming a doctor. He walks 8km daily to reach school. Your help lets him focus on learning instead of fees.", goal: 120, raised: 75, status: "OPEN", grade: "Grade 6", emoji: "👦🏾" },
-  { id: "2", name: "Hibo", age: 10, location: "Mogadishu, Somalia", story: "Hibo is the top student in her class but her family cannot afford fees. One sponsor keeps her in school for a full year.", goal: 120, raised: 120, status: "FULLY_FUNDED", grade: "Grade 4", emoji: "👧🏾" },
-  { id: "3", name: "Omar", age: 14, location: "Garissa, Kenya", story: "Omar lost both parents in the drought crisis. His aunt is raising him but cannot cover school costs. He wants to be an engineer.", goal: 200, raised: 60, status: "OPEN", grade: "Grade 8", emoji: "👦🏿" },
-  { id: "4", name: "Fadumo", age: 11, location: "Hargeisa, Somaliland", story: "Fadumo was pulled out of school to help at home. Her community freed her from chores — now she needs a sponsor to return.", goal: 120, raised: 40, status: "OPEN", grade: "Grade 5", emoji: "👧🏿" },
-  { id: "5", name: "Yusuf", age: 13, location: "Afar Region, Ethiopia", story: "Yusuf is already a success story — last year's sponsors helped him pass exams. He needs continued support for secondary school.", goal: 250, raised: 175, status: "OPEN", grade: "Secondary 1", emoji: "👦🏿" },
-  { id: "6", name: "Asha", age: 9, location: "Mandera, Kenya", story: "Asha just started school for the first time. She is the first girl in her family to attend. Your sponsorship writes history.", goal: 100, raised: 30, status: "OPEN", grade: "Grade 1", emoji: "👧🏾" },
-];
+export const revalidate = 60;
 
-export default function StudentsPage() {
+async function getStudents() {
+  try {
+    return await prisma.student.findMany({
+      where: { status: { in: ["APPROVED", "FUNDING"] }, isActive: true },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch {
+    return [];
+  }
+}
+
+export default async function StudentsPage() {
+  const students = await getStudents();
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: "100vh", backgroundColor: "#f9fafb" }}>
       {/* Hero */}
-      <div className="gradient-hero text-white py-16 px-4">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 mb-5 text-sm font-medium">
-            <GraduationCap className="w-4 h-4" /> Sponsor a student — change a future
+      <div className="gradient-hero" style={{ color: "#fff", padding: "4rem 1rem" }}>
+        <div style={{ maxWidth: 720, margin: "0 auto", textAlign: "center" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 99, padding: "6px 16px", marginBottom: 20, fontSize: 14, fontWeight: 500 }}>
+            <GraduationCap style={{ width: 16, height: 16 }} /> Sponsor a student — change a future
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold mb-3">
-            Students Needing{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-yellow-300">Sponsors</span>
+          <h1 style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 800, marginBottom: 12 }}>
+            Students Needing Sponsors
           </h1>
-          <p className="text-white/75 text-lg">
+          <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "1.1rem" }}>
             $120 covers one full year of school. You receive progress updates throughout the year.
           </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "3rem 1.25rem" }}>
         {/* How it works */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 mb-12">
-          <h2 className="font-bold text-gray-900 text-xl mb-6 text-center">How Sponsorship Works</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+        <div style={{ backgroundColor: "#fff", borderRadius: 16, border: "1px solid #e5e7eb", padding: "2rem", marginBottom: "3rem", textAlign: "center" }}>
+          <h2 style={{ fontWeight: 700, color: "#111827", fontSize: "1.25rem", marginBottom: 24 }}>How Sponsorship Works</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24 }}>
             {[
               { step: "1", title: "Choose a Student", desc: "Browse verified profiles" },
               { step: "2", title: "Sponsor Them", desc: "Pay securely via Stripe" },
               { step: "3", title: "Track Progress", desc: "Updates as they grow" },
               { step: "4", title: "See Impact", desc: "Their success is yours" },
             ].map(({ step, title, desc }) => (
-              <div key={step} className="flex flex-col items-center gap-2">
-                <div className="w-10 h-10 rounded-full bg-green-600 text-white font-bold text-lg flex items-center justify-center shadow-md">
-                  {step}
-                </div>
-                <p className="font-semibold text-gray-900 text-sm">{title}</p>
-                <p className="text-xs text-gray-500">{desc}</p>
+              <div key={step} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 40, height: 40, borderRadius: "50%", backgroundColor: "#16a34a", color: "#fff", fontWeight: 700, fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>{step}</div>
+                <p style={{ fontWeight: 600, color: "#111827", fontSize: 14 }}>{title}</p>
+                <p style={{ fontSize: 12, color: "#6b7280" }}>{desc}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Students grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
-          {students.map((s) => {
-            const pct = Math.min(Math.round((s.raised / s.goal) * 100), 100);
-            return (
-              <div key={s.id} className="story-card flex flex-col">
-                {/* Card image area */}
-                <div className="relative h-48 proj-img-student flex flex-col items-center justify-center gap-2">
-                  <span className="text-6xl drop-shadow">{s.emoji}</span>
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    <span className="badge badge-blue bg-white/90">{s.grade}</span>
-                    {s.status === "OPEN"
-                      ? <span className="badge badge-green bg-white/90">Needs Sponsor</span>
-                      : <span className="badge badge-gold bg-white/90">Sponsored ✓</span>}
-                  </div>
-                  <div className="absolute bottom-3 left-3 bg-black/30 text-white text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm">
-                    Age {s.age}
-                  </div>
-                </div>
+        {students.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "5rem 1rem", color: "#6b7280" }}>
+            <p style={{ fontSize: "1.1rem", marginBottom: 8 }}>No students available for sponsorship right now.</p>
+            <p style={{ fontSize: "0.9rem" }}>Check back soon — our journalists are documenting new cases.</p>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 24 }}>
+            {students.map((s) => {
+              const goal = Number(s.goalAmount);
+              const raised = Number(s.raisedAmount);
+              const pct = goal > 0 ? Math.min(Math.round((raised / goal) * 100), 100) : 0;
+              const isFullyFunded = pct >= 100;
+              const loc = formatLocation({ village: s.village, district: s.district, region: s.region, country: s.country });
 
-                <div className="p-5 flex flex-col flex-1">
-                  <h3 className="font-bold text-gray-900 text-lg mb-1">{s.name}</h3>
-                  <div className="flex items-center gap-1 text-xs text-gray-400 mb-3">
-                    <MapPin className="w-3 h-3" />{s.location}
-                  </div>
-                  <p className="text-sm text-gray-600 line-clamp-3 mb-4 flex-1">{s.story}</p>
-
-                  <div className="mb-4">
-                    <div className="flex justify-between items-center text-sm mb-1.5">
-                      <span className="font-bold text-gray-900">${s.raised} raised</span>
-                      <span className="text-gray-400 text-xs">of ${s.goal}/yr · {pct}%</span>
+              return (
+                <div key={s.id} style={{ backgroundColor: "#fff", borderRadius: 16, border: "1px solid #e5e7eb", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                  {/* Image/header */}
+                  <div style={{
+                    height: 180,
+                    background: s.imageUrl ? `url(${s.imageUrl}) center/cover` : "linear-gradient(135deg, #16a34a, #1d4ed8)",
+                    position: "relative", display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {!s.imageUrl && <span style={{ fontSize: 60 }}>👦🏾</span>}
+                    <div style={{ position: "absolute", top: 10, left: 10, display: "flex", gap: 6 }}>
+                      {s.grade && (
+                        <span style={{ backgroundColor: "rgba(255,255,255,0.9)", color: "#1d4ed8", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99 }}>{s.grade}</span>
+                      )}
+                      <span style={{
+                        backgroundColor: "rgba(255,255,255,0.9)",
+                        color: isFullyFunded ? "#ca8a04" : "#16a34a",
+                        fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99,
+                      }}>
+                        {isFullyFunded ? "Sponsored ✓" : "Needs Sponsor"}
+                      </span>
                     </div>
-                    <div className="progress-bar">
-                      <div className="progress-fill" style={{ width: `${pct}%` }} />
-                    </div>
+                    {s.age && (
+                      <span style={{ position: "absolute", bottom: 10, left: 10, backgroundColor: "rgba(0,0,0,0.5)", color: "#fff", fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 99 }}>
+                        Age {s.age}
+                      </span>
+                    )}
                   </div>
 
-                  {s.status === "OPEN" ? (
+                  <div style={{ padding: 20, display: "flex", flexDirection: "column", flex: 1 }}>
+                    <h3 style={{ fontWeight: 700, color: "#111827", fontSize: "1.1rem", marginBottom: 4 }}>{s.name}</h3>
+                    <p style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "#9ca3af", marginBottom: 12 }}>
+                      <MapPin size={11} /> {loc}
+                    </p>
+                    <p style={{ fontSize: 14, color: "#4b5563", lineHeight: 1.6, flex: 1, marginBottom: 16, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      {s.story}
+                    </p>
+
+                    {goal > 0 && (
+                      <div style={{ marginBottom: 16 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6, fontSize: 14 }}>
+                          <span style={{ fontWeight: 700, color: "#111827" }}>${raised} raised</span>
+                          <span style={{ fontSize: 12, color: "#9ca3af" }}>of ${goal}/yr · {pct}%</span>
+                        </div>
+                        <div style={{ height: 6, backgroundColor: "#e5e7eb", borderRadius: 99 }}>
+                          <div style={{ height: "100%", backgroundColor: isFullyFunded ? "#eab308" : "#16a34a", borderRadius: 99, width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    )}
+
                     <Link
-                      href={`/donate?sponsorship=${s.id}&type=student&name=${encodeURIComponent(s.name)}`}
-                      className="w-full text-center py-3 rounded-xl font-bold text-sm bg-green-600 hover:bg-green-700 text-white shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2"
+                      href={isFullyFunded ? "#" : `/donate?type=student&name=${encodeURIComponent(s.name)}`}
+                      style={{
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                        padding: "12px", borderRadius: 12, fontWeight: 700, fontSize: 14,
+                        textDecoration: "none",
+                        backgroundColor: isFullyFunded ? "#fef9c3" : "#16a34a",
+                        color: isFullyFunded ? "#a16207" : "#fff",
+                        border: isFullyFunded ? "1px solid #fde68a" : "none",
+                      }}
                     >
-                      <Heart className="w-4 h-4 fill-white" /> Sponsor {s.name}
+                      {isFullyFunded ? "Fully Sponsored ✓" : <><Heart size={16} style={{ fill: "#fff" }} /> Sponsor {s.name}</>}
                     </Link>
-                  ) : (
-                    <div className="w-full text-center py-3 rounded-xl font-bold text-sm bg-yellow-50 text-yellow-700 border border-yellow-200">
-                      Fully Sponsored ✓
-                    </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* CTA */}
-        <div className="mt-14 gradient-hero text-white rounded-3xl p-10 text-center">
-          <h2 className="text-3xl font-bold mb-3">Can&apos;t choose just one?</h2>
-          <p className="text-white/75 mb-6">Make a general education donation — we distribute it among the most urgent cases.</p>
-          <Link href="/donate?category=education" className="btn-gold inline-flex items-center gap-2">
-            Support Education Fund <ArrowRight className="w-4 h-4" />
+        <div className="gradient-hero" style={{ marginTop: "3rem", color: "#fff", borderRadius: 20, padding: "3rem 2rem", textAlign: "center" }}>
+          <h2 style={{ fontSize: "1.75rem", fontWeight: 800, marginBottom: 12 }}>Can&apos;t choose just one?</h2>
+          <p style={{ color: "rgba(255,255,255,0.75)", marginBottom: 24 }}>Make a general education donation — we distribute it among the most urgent cases.</p>
+          <Link href="/donate?category=education" style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            backgroundColor: "#eab308", color: "#000", padding: "12px 24px",
+            borderRadius: 12, fontWeight: 700, textDecoration: "none",
+          }}>
+            Support Education Fund <ArrowRight size={16} />
           </Link>
         </div>
       </div>

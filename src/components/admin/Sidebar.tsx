@@ -15,12 +15,16 @@ import {
   Settings,
   LogOut,
   Shield,
+  GraduationCap,
+  Home,
 } from "lucide-react";
 
 const NAV = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Cases", href: "/admin/cases", icon: FolderOpen },
+  { label: "Students", href: "/admin/students", icon: GraduationCap },
+  { label: "Families", href: "/admin/families", icon: Home },
   { label: "Journalists", href: "/admin/journalists", icon: Camera },
   { label: "Finance", href: "/admin/finance", icon: DollarSign },
   { label: "Operations", href: "/admin/operations", icon: Globe },

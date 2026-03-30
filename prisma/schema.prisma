@@ -120,6 +120,66 @@ model Report {
   @@index([region])
 }
 
+// ── STUDENTS ──────────────────────────────────────────
+
+model Student {
+  id           String       @id @default(cuid())
+  slug         String       @unique
+  name         String
+  age          Int?
+  grade        String?
+  location     String?
+  country      String       @default("Somalia")
+  region       String       @default("Gedo")
+  district     String?
+  village      String?
+  story        String       @db.Text
+  imageUrl     String?
+  goalAmount   Decimal      @db.Decimal(12, 2)
+  raisedAmount Decimal      @default(0) @db.Decimal(12, 2)
+  currency     String       @default("USD")
+  status       ReportStatus @default(PENDING)
+  journalistId String
+  approvedById String?
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([status])
+  @@index([region])
+}
+
+// ── FAMILIES ──────────────────────────────────────────
+
+model Family {
+  id           String       @id @default(cuid())
+  slug         String       @unique
+  name         String
+  members      Int?
+  location     String?
+  country      String       @default("Somalia")
+  region       String       @default("Gedo")
+  district     String?
+  village      String?
+  situation    String?
+  story        String       @db.Text
+  need         String?
+  imageUrl     String?
+  phoneContact String?
+  goalAmount   Decimal      @db.Decimal(12, 2)
+  raisedAmount Decimal      @default(0) @db.Decimal(12, 2)
+  currency     String       @default("USD")
+  status       ReportStatus @default(PENDING)
+  journalistId String
+  approvedById String?
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([status])
+  @@index([region])
+}
+
 // ── DONATIONS ─────────────────────────────────────────
 
 model Donation {

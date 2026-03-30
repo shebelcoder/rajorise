@@ -14,12 +14,16 @@ import {
   XCircle,
   User,
   LogOut,
+  GraduationCap,
+  Users,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/journalist/dashboard", icon: LayoutDashboard },
   { label: "My Cases", href: "/journalist/cases", icon: FolderOpen },
-  { label: "Create New Case", href: "/journalist/cases/new", icon: Plus, accent: true },
+  { label: "Create Case", href: "/journalist/cases/new", icon: Plus, accent: true },
+  { label: "Add Student", href: "/journalist/students/new", icon: GraduationCap, accent: true },
+  { label: "Add Family", href: "/journalist/families/new", icon: Users, accent: true },
 ];
 
 const FILTER_ITEMS = [
