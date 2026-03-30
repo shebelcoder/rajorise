@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Save, Send, AlertCircle, CheckCircle } from "lucide-react";
+import ImageUpload from "@/components/ImageUpload";
 import { REGIONS, getDistricts, getVillages } from "@/lib/locations";
 
 interface CaseData {
@@ -199,20 +200,12 @@ export default function CaseEditor({ initialData }: { initialData?: CaseData }) 
           </p>
         </div>
 
-        {/* Cover image URL (temporary — will be file upload later) */}
-        <div>
-          <label style={labelStyle}>Cover Image URL (optional)</label>
-          <input
-            type="url"
-            value={form.coverImageUrl}
-            onChange={set("coverImageUrl")}
-            placeholder="https://..."
-            style={inputStyle}
-          />
-          <p style={{ fontSize: 11, color: "#484f58", marginTop: 4 }}>
-            Image upload coming soon. For now, paste a direct image URL.
-          </p>
-        </div>
+        {/* Cover image */}
+        <ImageUpload
+          value={form.coverImageUrl}
+          onChange={(url) => setForm((f) => ({ ...f, coverImageUrl: url }))}
+          label="Cover Image"
+        />
 
         {/* Messages */}
         {error && (

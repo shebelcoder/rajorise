@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Save, Send, AlertCircle, CheckCircle, Users } from "lucide-react";
 import { REGIONS, getDistricts, getVillages } from "@/lib/locations";
+import ImageUpload from "@/components/ImageUpload";
 
 export default function NewFamilyPage() {
   const router = useRouter();
@@ -96,8 +97,7 @@ export default function NewFamilyPage() {
             <p style={{ fontSize: 11, color: form.story.length >= 20 ? "#22c55e" : "#484f58", marginTop: 4 }}>{form.story.length} chars {form.story.length < 20 ? `(need ${20 - form.story.length} more)` : "✓"}</p>
           </div>
 
-          <div><label style={labelStyle}>Photo URL (optional)</label>
-            <input value={form.imageUrl} onChange={set("imageUrl")} placeholder="https://..." style={inputStyle} /></div>
+          <ImageUpload value={form.imageUrl} onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))} label="Family Photo" />
 
           {error && <div style={{ display: "flex", alignItems: "center", gap: 8, backgroundColor: "#2c0f0f", border: "1px solid #da3633", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#f85149" }}><AlertCircle size={14} /> {error}</div>}
           {success && <div style={{ display: "flex", alignItems: "center", gap: 8, backgroundColor: "#0f2c1a", border: "1px solid #238636", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#3fb950" }}><CheckCircle size={14} /> {success}</div>}

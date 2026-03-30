@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Save, Send, AlertCircle, CheckCircle, BookOpen } from "lucide-react";
 import { REGIONS } from "@/lib/locations";
+import ImageUpload from "@/components/ImageUpload";
 
 const CATEGORIES = [
   { value: "success", label: "Success Story" },
@@ -84,9 +85,7 @@ export default function NewStoryPage() {
             <p style={{ fontSize: 11, color: form.content.length >= 50 ? "#22c55e" : "#484f58", marginTop: 4 }}>{form.content.length} chars {form.content.length < 50 ? `(need ${50 - form.content.length} more)` : "✓"}</p>
           </div>
 
-          <div><label style={labelStyle}>Cover Image URL (optional)</label>
-            <input value={form.imageUrl} onChange={set("imageUrl")} placeholder="https://..." style={inputStyle} />
-          </div>
+          <ImageUpload value={form.imageUrl} onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))} label="Cover Image" />
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div><label style={labelStyle}>Related to (optional)</label>
