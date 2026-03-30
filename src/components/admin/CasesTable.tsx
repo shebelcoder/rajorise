@@ -27,6 +27,9 @@ export default function AdminCasesTable({ cases }: { cases: CaseItem[] }) {
   const [acting, setActing] = useState<string | null>(null);
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [reason, setReason] = useState("");
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  const [previewContent, setPreviewContent] = useState<string>("");
+  const [loadingPreview, setLoadingPreview] = useState(false);
 
   const filtered = filter ? cases.filter((c) => c.status === filter) : cases;
 
@@ -94,6 +97,19 @@ export default function AdminCasesTable({ cases }: { cases: CaseItem[] }) {
                     {c.status}
                   </span>
 
+                  <button onClick={async () => {
+                    if (previewId === c.id) { setPreviewId(null); return; }
+                    setLoadingPreview(true); setPreviewId(c.id);
+                    try {
+                      const res = await fetch(`/api/admin/cases/${c.id}`);
+                      const data = await res.json();
+                      setPreviewContent(data.fullStory || data.summary || "No content");
+                    } catch { setPreviewContent("Failed to load"); }
+                    setLoadingPreview(false);
+                  }} style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600, backgroundColor: "#0d1a2e", color: "#58a6ff", border: "1px solid #1f6feb", cursor: "pointer" }}>
+                    {previewId === c.id ? "Hide" : "View"}
+                  </button>
+
                   <Link href={`/admin/cases/${c.id}/edit`} style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600, backgroundColor: "#21262d", color: "#e6edf3", border: "1px solid #30363d", textDecoration: "none" }}>
                     <Pencil size={12} /> Edit
                   </Link>
@@ -118,6 +134,17 @@ export default function AdminCasesTable({ cases }: { cases: CaseItem[] }) {
                 </div>
 
                 {/* Reject reason modal */}
+                {/* Full story preview */}
+                {previewId === c.id && (
+                  <div style={{ marginTop: 10, padding: "16px", backgroundColor: "#0d1117", border: "1px solid #21262d", borderRadius: 8, maxHeight: 300, overflowY: "auto" }}>
+                    {loadingPreview ? (
+                      <p style={{ fontSize: 12, color: "#6b7280" }}>Loading...</p>
+                    ) : (
+                      <p style={{ fontSize: 13, color: "#8b949e", lineHeight: 1.7, whiteSpace: "pre-wrap", margin: 0 }}>{previewContent}</p>
+                    )}
+                  </div>
+                )}
+
                 {rejectId === c.id && (
                   <div style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center" }}>
                     <input

@@ -172,55 +172,34 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* SUCCESS STORY */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <span className="badge badge-gold mb-4 block w-fit">Success Story</span>
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                From Dropout to<br />
-                <span className="text-gradient">Top of His Class</span>
-              </h2>
-              <p className="text-gray-600 leading-relaxed mb-6">
-                Yusuf was about to quit school when RajoRise donors stepped in. Thanks to 3 sponsors,
-                he finished top of his grade.
-              </p>
-              <div className="space-y-4 mb-8">
-                {[
-                  { date: "Jan 2025", event: "First sponsorship received" },
-                  { date: "Mar 2025", event: "Received school supplies" },
-                  { date: "Jun 2025", event: "Passed grade exams with distinction" },
-                ].map(({ date, event }) => (
-                  <div key={date} className="flex items-start gap-3">
-                    <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0" />
-                    <div>
-                      <span className="text-xs font-semibold text-green-600 uppercase tracking-wide">{date}</span>
-                      <p className="text-sm text-gray-700">{event}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Link href="/stories" className="btn-primary">
-                Read More Stories <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-            <div className="relative">
-              <div className="bg-gradient-to-br from-green-100 to-blue-100 rounded-3xl h-80 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center mx-auto mb-4 text-4xl">
-                    👦
-                  </div>
-                  <p className="font-bold text-gray-800 text-lg">Yusuf, Age 14</p>
-                  <p className="text-gray-500 text-sm">Mogadishu, Somalia</p>
+      {/* HOW IT WORKS */}
+      <section style={{ padding: "5rem 0", backgroundColor: "#fff" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem", textAlign: "center" }}>
+          <h2 style={{ fontSize: "clamp(1.5rem, 3vw, 2.25rem)", fontWeight: 800, color: "#111827", marginBottom: 12 }}>
+            How RajoRise Works
+          </h2>
+          <p style={{ color: "#6b7280", marginBottom: "3rem", fontSize: "1rem" }}>
+            From journalist field reports to verified impact — every step is transparent
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24 }}>
+            {[
+              { step: "1", title: "Journalist Documents", desc: "Field journalists create verified reports about communities in need", color: "#58a6ff" },
+              { step: "2", title: "Admin Verifies", desc: "Our team reviews every case before it goes public", color: "#f59e0b" },
+              { step: "3", title: "Donors Contribute", desc: "You choose a case, student, or family to support directly", color: "#22c55e" },
+              { step: "4", title: "Impact Delivered", desc: "Funds are allocated, goods delivered, and progress tracked", color: "#a78bfa" },
+            ].map(({ step, title, desc, color }) => (
+              <div key={step} style={{ textAlign: "center" }}>
+                <div style={{ width: 56, height: 56, borderRadius: "50%", backgroundColor: color, color: "#fff", fontSize: 24, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                  {step}
                 </div>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: "#111827", marginBottom: 6 }}>{title}</h3>
+                <p style={{ fontSize: 13, color: "#6b7280", lineHeight: 1.6 }}>{desc}</p>
               </div>
-              <div className="absolute -bottom-4 -right-4 bg-white rounded-2xl shadow-lg p-4 border border-gray-100">
-                <p className="text-xs text-gray-500">Fully Sponsored</p>
-                <p className="font-bold text-green-600 text-lg">$120 / $120</p>
-              </div>
-            </div>
+            ))}
           </div>
+          <Link href="/stories" style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: "2.5rem", backgroundColor: "#16a34a", color: "#fff", padding: "12px 24px", borderRadius: 12, fontWeight: 700, textDecoration: "none" }}>
+            Read Impact Stories <ArrowRight size={16} />
+          </Link>
         </div>
       </section>
 
