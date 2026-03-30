@@ -12,6 +12,7 @@ const navLinks = [
   { href: "/impact",    label: "Impact" },
   { href: "/stories",   label: "Stories" },
   { href: "/about",     label: "About" },
+  { href: "/contact",   label: "Contact" },
 ];
 
 export default function Navbar() {

@@ -61,7 +61,7 @@ export default async function HomePage() {
             <div>
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-2 mb-6 text-sm font-medium">
                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                Trusted by donors in 40+ countries
+                Transparent humanitarian platform
               </div>
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-tight mb-6">
                 Plant Hope.<br />
@@ -234,7 +234,7 @@ export default async function HomePage() {
             </span>
           </h2>
           <p className="text-xl text-white/80 mb-8">
-            Join 4,200+ donors making real change. No account needed.
+            Join our growing community of donors. No account needed.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/donate" className="btn-gold text-lg px-10 py-4">

@@ -29,30 +29,50 @@ export async function POST(req: NextRequest) {
     const amount = (session.amount_total || 0) / 100;
     const meta = session.metadata || {};
 
-    console.log(`Donation received: $${amount} | donor: ${meta.donorName || "anonymous"}`);
+    console.log(`Donation received: $${amount} | donor: ${meta.donorName || "anonymous"} | userId: ${meta.userId || "none"} | reportId: ${meta.reportId || "general"}`);
 
     try {
-      // Record donation in DB
-      if (meta.userId && meta.reportId) {
-        await prisma.donation.create({
-          data: {
-            userId: meta.userId,
-            reportId: meta.reportId,
-            amount,
-            currency: session.currency || "usd",
-            paymentMethod: "STRIPE",
-            stripePaymentId: session.payment_intent as string,
-            status: "CONFIRMED",
-            isAnonymous: meta.anonymous === "true",
-            donorMessage: meta.message || null,
-          },
-        });
+      // Get or create userId for the donation record
+      let userId = meta.userId;
 
-        // Update Report.raisedAmount
-        await prisma.report.update({
-          where: { id: meta.reportId },
-          data: { raisedAmount: { increment: amount } },
-        });
+      if (!userId) {
+        // For anonymous/guest donations, find or create a system "guest" user
+        const guestEmail = session.customer_email || "guest@rajorise.com";
+        let guestUser = await prisma.user.findUnique({ where: { email: guestEmail } });
+        if (!guestUser) {
+          guestUser = await prisma.user.create({
+            data: { email: guestEmail, name: meta.donorName || "Guest Donor", role: "DONOR" },
+          });
+        }
+        userId = guestUser.id;
+      }
+
+      // Record donation — works for both logged-in and guest donors
+      await prisma.donation.create({
+        data: {
+          userId,
+          reportId: meta.reportId || null,
+          amount,
+          currency: session.currency || "usd",
+          paymentMethod: "STRIPE",
+          stripePaymentId: session.payment_intent as string,
+          status: "CONFIRMED",
+          isAnonymous: meta.anonymous === "true",
+          donorMessage: meta.message || null,
+        },
+      });
+
+      // Update Report.raisedAmount if reportId exists
+      if (meta.reportId) {
+        try {
+          await prisma.report.update({
+            where: { id: meta.reportId },
+            data: { raisedAmount: { increment: amount } },
+          });
+        } catch {
+          // Report might not exist — that's OK for general donations
+          console.log(`Report ${meta.reportId} not found for raisedAmount update`);
+        }
       }
     } catch (err) {
       console.error("Failed to record donation:", err);

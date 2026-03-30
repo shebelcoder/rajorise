@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Heart, CreditCard, Smartphone, Shield, CheckCircle } from "lucide-react";
 import Link from "next/link";
 
@@ -17,7 +18,9 @@ const CATEGORIES = [
 
 function DonateForm() {
   const params = useSearchParams();
+  const { data: session } = useSession();
   const preAmount = params.get("amount");
+  const caseSlug = params.get("case");
 
   const [amount, setAmount] = useState<number | null>(preAmount ? Number(preAmount) : 10);
   const [custom, setCustom] = useState(preAmount && !AMOUNTS.includes(Number(preAmount)) ? preAmount : "");
@@ -40,7 +43,11 @@ function DonateForm() {
       const res = await fetch("/api/donate/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: finalAmount, currency: "usd", category, name, email, message, anonymous }),
+        body: JSON.stringify({
+          amount: finalAmount, currency: "usd", category, name, email, message, anonymous,
+          reportId: caseSlug || undefined,
+          userId: (session?.user as { id?: string } | undefined)?.id || undefined,
+        }),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;

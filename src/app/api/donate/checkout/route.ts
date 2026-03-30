@@ -20,6 +20,7 @@ const checkoutSchema = z.object({
   message: z.string().max(500).optional(),
   anonymous: z.boolean().default(false),
   reportId: z.string().max(50).optional(),
+  userId: z.string().max(50).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { amount, currency, category, name, email, message, anonymous, reportId } = parsed.data;
+    const { amount, currency, category, name, email, message, anonymous, reportId, userId } = parsed.data;
     const stripe = getStripe();
 
     const metadata: Record<string, string> = {
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
     if (name && !anonymous) metadata.donorName = sanitizePlain(name);
     if (message) metadata.message = sanitizePlain(message);
     if (reportId) metadata.reportId = reportId;
+    if (userId) metadata.userId = userId;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
