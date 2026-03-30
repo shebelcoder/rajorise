@@ -22,9 +22,22 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    setSent(true);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (res.ok) setSent(true);
+      else {
+        const data = await res.json();
+        alert(data.error || "Failed to send.");
+      }
+    } catch {
+      alert("Network error.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (sent) {

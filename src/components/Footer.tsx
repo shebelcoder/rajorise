@@ -52,7 +52,7 @@ export default function Footer() {
               {[
                 { href: "/about", label: "About Us" },
                 { href: "/contact", label: "Contact" },
-                { href: "/journalist/login", label: "Journalist Portal" },
+                { href: "/transparency", label: "Transparency" },
                 { href: "/privacy", label: "Privacy Policy" },
                 { href: "/terms", label: "Terms of Use" },
               ].map((l) => (
@@ -77,7 +77,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-green-400" />
-                <span>+1 (555) 000-0000</span>
+                <span>hello@rajorise.com</span>
               </li>
             </ul>
             <div className="mt-6">

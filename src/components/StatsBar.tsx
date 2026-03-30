@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Users, Heart, Droplets, GraduationCap } from "lucide-react";
-
-const stats = [
-  { icon: Heart,         label: "Total Donated",      value: 125340, prefix: "$" },
-  { icon: Users,         label: "Families Helped",     value: 340,    prefix: "",  suffix: "+" },
-  { icon: GraduationCap, label: "Students Supported",  value: 89,     prefix: "" },
-  { icon: Droplets,      label: "Water Trucks",        value: 47,     prefix: "" },
-];
+import { Users, Heart, GraduationCap, FolderOpen } from "lucide-react";
 
 function useCountUp(target: number, duration = 1800, active = false) {
   const [n, setN] = useState(0);
@@ -25,7 +18,7 @@ function useCountUp(target: number, duration = 1800, active = false) {
   return n;
 }
 
-function Stat({ icon: Icon, label, value, prefix, suffix = "" }: typeof stats[0]) {
+function Stat({ icon: Icon, label, value, prefix = "", suffix = "" }: { icon: typeof Heart; label: string; value: number; prefix?: string; suffix?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [on, setOn] = useState(false);
   const n = useCountUp(value, 1800, on);
@@ -50,6 +43,19 @@ function Stat({ icon: Icon, label, value, prefix, suffix = "" }: typeof stats[0]
 }
 
 export default function StatsBar() {
+  const [data, setData] = useState({ totalDonated: 0, casesHelped: 0, activeCases: 0, totalDonors: 0 });
+
+  useEffect(() => {
+    fetch("/api/stats").then((r) => r.json()).then(setData).catch(() => {});
+  }, []);
+
+  const stats = [
+    { icon: Heart, label: "Total Donated", value: data.totalDonated, prefix: "$" },
+    { icon: FolderOpen, label: "Active Cases", value: data.activeCases },
+    { icon: GraduationCap, label: "Cases Completed", value: data.casesHelped },
+    { icon: Users, label: "Registered Donors", value: data.totalDonors },
+  ];
+
   return (
     <section style={{ padding: "4rem 1.25rem", background: "#f9fafb" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -57,7 +63,7 @@ export default function StatsBar() {
           <h2 style={{ fontSize: "clamp(1.4rem, 3vw, 2rem)", fontWeight: 800, color: "#111827", letterSpacing: "-0.02em" }}>
             Real Impact, Real Numbers
           </h2>
-          <p style={{ color: "#6b7280", marginTop: "0.4rem", fontSize: "0.9rem" }}>Live statistics updated as donations arrive</p>
+          <p style={{ color: "#6b7280", marginTop: "0.4rem", fontSize: "0.9rem" }}>Live data from our platform database</p>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1rem" }}>
           {stats.map((s) => <Stat key={s.label} {...s} />)}

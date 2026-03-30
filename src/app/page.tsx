@@ -4,39 +4,31 @@ import DonationWidget from "@/components/DonationWidget";
 import StatsBar from "@/components/StatsBar";
 import SponsorshipCard from "@/components/SponsorshipCard";
 import SomaliaMapSection from "@/components/SomaliaMapSection";
+import { prisma } from "@/lib/prisma";
+import { formatLocation } from "@/lib/locations";
 
-const featuredSponsors = [
-  {
-    id: "1",
-    type: "student" as const,
-    name: "Ayaan",
-    location: "Somali Region, Ethiopia",
-    story: "Ayaan is 12 years old and dreams of becoming a doctor. With your help, he can attend school this year.",
-    goal: 120,
-    raised: 75,
-    status: "OPEN" as const,
-  },
-  {
-    id: "2",
-    type: "family" as const,
-    name: "Al-Hassan Family",
-    location: "Northern Kenya",
-    story: "A family of 6 facing severe drought. They need food support for the next three months.",
-    goal: 250,
-    raised: 180,
-    status: "OPEN" as const,
-  },
-  {
-    id: "3",
-    type: "project" as const,
-    name: "Water Truck – Village Daro",
-    location: "Daro, Somalia",
-    story: "20 families have no access to clean water. One water truck delivery serves the entire village for a month.",
-    goal: 400,
-    raised: 400,
-    status: "FULLY_FUNDED" as const,
-  },
-];
+export const revalidate = 120;
+
+async function getFeaturedSponsors() {
+  try {
+    const [students, families, cases] = await Promise.all([
+      prisma.student.findMany({ where: { status: { in: ["APPROVED", "FUNDING"] }, isActive: true }, take: 1, orderBy: { createdAt: "desc" } }),
+      prisma.family.findMany({ where: { status: { in: ["APPROVED", "FUNDING"] }, isActive: true }, take: 1, orderBy: { createdAt: "desc" } }),
+      prisma.report.findMany({ where: { status: { in: ["APPROVED", "FUNDING"] } }, take: 1, orderBy: { createdAt: "desc" } }),
+    ]);
+    const items: { id: string; type: "student" | "family" | "project"; name: string; location: string; story: string; goal: number; raised: number; status: "OPEN" | "FULLY_FUNDED" }[] = [];
+    for (const s of students) {
+      items.push({ id: s.slug, type: "student", name: s.name, location: formatLocation({ district: s.district, region: s.region }), story: s.story.slice(0, 150), goal: Number(s.goalAmount), raised: Number(s.raisedAmount), status: Number(s.raisedAmount) >= Number(s.goalAmount) ? "FULLY_FUNDED" : "OPEN" });
+    }
+    for (const f of families) {
+      items.push({ id: f.slug, type: "family", name: f.name, location: formatLocation({ district: f.district, region: f.region }), story: f.story.slice(0, 150), goal: Number(f.goalAmount), raised: Number(f.raisedAmount), status: Number(f.raisedAmount) >= Number(f.goalAmount) ? "FULLY_FUNDED" : "OPEN" });
+    }
+    for (const c of cases) {
+      items.push({ id: c.slug, type: "project", name: c.title, location: formatLocation({ district: c.district, region: c.region }), story: c.summary.slice(0, 150), goal: Number(c.goalAmount), raised: Number(c.raisedAmount), status: Number(c.raisedAmount) >= Number(c.goalAmount) ? "FULLY_FUNDED" : "OPEN" });
+    }
+    return items;
+  } catch { return []; }
+}
 
 const fundAreas = [
   { icon: Droplets, label: "Water Delivery", description: "Clean water to drought-affected villages", color: "bg-blue-50 text-blue-600" },
@@ -52,7 +44,8 @@ const whyUs = [
   { icon: Heart, title: "Real Stories", description: "Field journalists document every project with photos and videos." },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const featuredSponsors = await getFeaturedSponsors();
   return (
     <>
       {/* HERO */}
