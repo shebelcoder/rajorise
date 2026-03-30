@@ -78,7 +78,9 @@ export default async function FamiliesPage() {
                   </div>
 
                   <div style={{ padding: 20, display: "flex", flexDirection: "column", flex: 1 }}>
-                    <h3 style={{ fontWeight: 700, color: "#111827", fontSize: "1.1rem", marginBottom: 4 }}>{f.name}</h3>
+                    <Link href={`/families/${f.slug}`} style={{ textDecoration: "none" }}>
+                      <h3 style={{ fontWeight: 700, color: "#111827", fontSize: "1.1rem", marginBottom: 4 }}>{f.name}</h3>
+                    </Link>
                     <p style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "#9ca3af", marginBottom: 4 }}>
                       <MapPin size={11} /> {loc}
                     </p>

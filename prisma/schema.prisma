@@ -180,6 +180,39 @@ model Family {
   @@index([region])
 }
 
+// ── STORIES / NEWS ────────────────────────────────────
+
+model Story {
+  id           String      @id @default(cuid())
+  slug         String      @unique
+  title        String
+  content      String      @db.Text
+  summary      String?
+  imageUrl     String?
+  // JOURNALIST = written by journalist, AUTO = system-generated, AI = AI-generated
+  source       StorySource @default(JOURNALIST)
+  category     String?     // success, milestone, farming, agriculture, seasonal, news
+  region       String?
+  status       ReportStatus @default(PENDING)
+  authorId     String?     // journalist or null for system/AI
+  approvedById String?
+  relatedType  String?     // student, family, case
+  relatedId    String?     // ID of related entity
+  publishedAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([status])
+  @@index([source])
+  @@index([category])
+}
+
+enum StorySource {
+  JOURNALIST
+  AUTO
+  AI
+}
+
 // ── DONATIONS ─────────────────────────────────────────
 
 model Donation {

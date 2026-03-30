@@ -133,9 +133,11 @@ export default function RegionFilter({ cases }: { cases: CaseItem[] }) {
                 </div>
 
                 <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", flex: 1 }}>
-                  <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#111827", marginBottom: "0.3rem", lineHeight: 1.3 }}>
-                    {c.title}
-                  </h3>
+                  <Link href={`/cases/${c.slug}`} style={{ textDecoration: "none" }}>
+                    <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#111827", marginBottom: "0.3rem", lineHeight: 1.3 }}>
+                      {c.title}
+                    </h3>
+                  </Link>
                   <p style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.75rem", color: "#9ca3af", marginBottom: "0.75rem" }}>
                     <MapPin size={11} /> {c.locationFormatted || c.location || `${c.region}, ${c.country}`}
                   </p>
