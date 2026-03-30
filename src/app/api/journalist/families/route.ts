@@ -15,7 +15,7 @@ const familySchema = z.object({
   district: z.string().max(100).optional(),
   village: z.string().max(100).optional(),
   story: z.string().max(5000).default(""),
-  imageUrl: z.string().max(500).optional(),
+  imageUrl: z.string().max(2000000).optional(),
   phoneContact: z.string().max(20).optional(),
   goalAmount: z.string().default("0"),
   submitForReview: z.boolean().default(false),

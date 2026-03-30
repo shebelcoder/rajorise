@@ -13,7 +13,7 @@ const caseSchema = z.object({
   district: z.string().max(100).default(""),
   village: z.string().max(100).default(""),
   goalAmount: z.string().default("0"),
-  coverImageUrl: z.string().max(500).default(""),
+  coverImageUrl: z.string().max(2000000).default(""),
   submitForReview: z.boolean().default(false),
 });
 

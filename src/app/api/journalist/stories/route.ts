@@ -11,7 +11,7 @@ const storySchema = z.object({
   content: z.string().min(50).max(10000),
   category: z.string().max(50).default("success"),
   region: z.string().max(100).optional(),
-  imageUrl: z.string().max(500).optional(),
+  imageUrl: z.string().max(2000000).optional(),
   relatedType: z.string().max(20).optional(),
   relatedId: z.string().max(50).optional(),
   submitForReview: z.boolean().default(false),
