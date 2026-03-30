@@ -1,56 +1,82 @@
+"use client";
+
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, Heart, ArrowRight } from "lucide-react";
 
-export default function DonateSuccessPage() {
+function SuccessContent() {
+  const params = useSearchParams();
+  const sessionId = params.get("session_id");
+
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-20 px-4">
-      <div className="max-w-lg w-full text-center">
-        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-12">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-10 h-10 text-green-600" />
+    <div style={{ minHeight: "100vh", backgroundColor: "#f9fafb", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem 1rem" }}>
+      <div style={{ maxWidth: 480, width: "100%", textAlign: "center" }}>
+        <div style={{ backgroundColor: "#fff", borderRadius: 24, border: "1px solid #e5e7eb", padding: "3rem 2.5rem", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }}>
+          <div style={{ width: 80, height: 80, borderRadius: "50%", backgroundColor: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
+            <CheckCircle size={40} style={{ color: "#16a34a" }} />
           </div>
 
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-3">
-            Thank You! 🌱
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: "#111827", marginBottom: 8 }}>
+            Thank You!
           </h1>
-          <p className="text-gray-600 mb-2 text-lg">Your donation has been received.</p>
-          <p className="text-gray-500 text-sm mb-8">
-            Your generosity will change lives. We will send a receipt to your email if you provided one.
+          <p style={{ fontSize: 16, color: "#4b5563", marginBottom: 4 }}>Your donation has been received.</p>
+          <p style={{ fontSize: 13, color: "#9ca3af", marginBottom: 32 }}>
+            Your generosity will change lives. A receipt will be sent to your email.
           </p>
 
-          <div className="bg-green-50 rounded-2xl p-5 mb-8 text-left">
-            <h3 className="font-semibold text-gray-900 mb-3">What happens next?</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              {[
-                "Your donation is processed securely by Stripe",
-                "Funds are directed to verified field projects",
-                "Our journalists document the impact",
-                "We publish monthly transparency reports",
-              ].map((step, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-green-200 text-green-800 text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5">
-                    {i + 1}
-                  </span>
-                  {step}
-                </li>
-              ))}
-            </ul>
+          {sessionId && (
+            <div style={{ backgroundColor: "#f9fafb", borderRadius: 12, padding: "12px 16px", marginBottom: 24, fontSize: 12, color: "#6b7280" }}>
+              Reference: <span style={{ fontFamily: "monospace", color: "#374151" }}>{sessionId.slice(0, 20)}...</span>
+            </div>
+          )}
+
+          <div style={{ backgroundColor: "#f0fdf4", borderRadius: 16, padding: 20, marginBottom: 24, textAlign: "left" }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 12 }}>What happens next?</h3>
+            {[
+              "Your donation is processed securely by Stripe",
+              "Funds go directly to verified cases and people",
+              "Journalists document the real impact on the ground",
+              "You can track progress on your account dashboard",
+            ].map((step, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
+                <span style={{ width: 22, height: 22, borderRadius: "50%", backgroundColor: "#dcfce7", color: "#16a34a", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                  {i + 1}
+                </span>
+                <span style={{ fontSize: 13, color: "#4b5563" }}>{step}</span>
+              </div>
+            ))}
           </div>
 
-          <div className="flex flex-col gap-3">
-            <Link href="/impact" className="btn-primary w-full justify-center py-3">
-              <Heart className="w-4 h-4 fill-white" />
-              See Your Impact
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <Link href="/impact" style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              backgroundColor: "#16a34a", color: "#fff", padding: "12px", borderRadius: 12,
+              fontWeight: 700, fontSize: 14, textDecoration: "none",
+            }}>
+              <Heart size={16} style={{ fill: "#fff" }} /> See Your Impact
             </Link>
-            <Link href="/stories" className="flex items-center justify-center gap-2 text-green-600 font-semibold hover:underline py-2">
-              Read Success Stories <ArrowRight className="w-4 h-4" />
+            <Link href="/account" style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              backgroundColor: "#f3f4f6", color: "#374151", padding: "12px", borderRadius: 12,
+              fontWeight: 600, fontSize: 14, textDecoration: "none",
+            }}>
+              View My Donations
             </Link>
-            <Link href="/" className="text-gray-400 text-sm hover:text-gray-600 transition-colors">
-              Return to Home
+            <Link href="/stories" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, color: "#16a34a", fontWeight: 600, fontSize: 13, textDecoration: "none", padding: "8px" }}>
+              Read Success Stories <ArrowRight size={14} />
             </Link>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DonateSuccessPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>Loading...</div>}>
+      <SuccessContent />
+    </Suspense>
   );
 }

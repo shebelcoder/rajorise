@@ -59,8 +59,24 @@ function DonateForm() {
     }
   };
 
+  const donationType = params.get("type");
+  const donateName = params.get("name");
+
   return (
     <form onSubmit={handleDonate} className="space-y-8">
+      {/* Donating to specific case/person */}
+      {(caseSlug || donateName) && (
+        <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 12, padding: "12px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 20 }}>{donationType === "student" ? "🎓" : donationType === "family" ? "👨‍👩‍👧‍👦" : "📋"}</span>
+          <div>
+            <p style={{ fontSize: 14, fontWeight: 700, color: "#16a34a", margin: 0 }}>
+              {donateName ? `Supporting: ${decodeURIComponent(donateName)}` : `Donating to case: ${caseSlug}`}
+            </p>
+            <p style={{ fontSize: 12, color: "#6b7280", margin: 0 }}>Your donation goes directly to this {donationType || "case"}</p>
+          </div>
+        </div>
+      )}
+
       {/* Amount selection */}
       <div>
         <h3 className="font-semibold text-gray-900 mb-4 text-lg">Choose an Amount</h3>
