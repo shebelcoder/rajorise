@@ -113,6 +113,10 @@ export default function AdminCasesTable({ cases }: { cases: CaseItem[] }) {
                   <Link href={`/admin/cases/${c.id}/edit`} style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600, backgroundColor: "#21262d", color: "#e6edf3", border: "1px solid #30363d", textDecoration: "none" }}>
                     <Pencil size={12} /> Edit
                   </Link>
+                  <button onClick={async () => { if (confirm(`Delete "${c.title}"?`)) { await fetch(`/api/admin/cases/${c.id}`, { method: "DELETE" }); router.refresh(); } }}
+                    style={{ padding: "5px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600, backgroundColor: "#1a0a0a", color: "#ef4444", border: "1px solid #3d1212", cursor: "pointer" }}>
+                    Delete
+                  </button>
 
                   {c.status === "PENDING" && (
                     <div style={{ display: "flex", gap: 6 }}>

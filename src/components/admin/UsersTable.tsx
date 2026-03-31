@@ -196,6 +196,12 @@ export default function UsersTable({ users }: { users: UserItem[] }) {
                     >
                       {u.isActive ? "Disable" : "Enable"}
                     </button>
+                    <button
+                      onClick={async () => { if (confirm(`Delete ${u.name || u.email}?`)) { await fetch(`/api/admin/users/${u.id}`, { method: "DELETE" }); router.refresh(); } }}
+                      style={{ padding: "4px 10px", borderRadius: 4, fontSize: 10, fontWeight: 600, border: "1px solid #21262d", cursor: "pointer", backgroundColor: "#1a0a0a", color: "#ef4444" }}
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               );

@@ -40,3 +40,21 @@ export async function PATCH(
 
   return NextResponse.json({ success: true, id: updated.id });
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getServerSession(authOptions);
+  const user = session?.user as { id?: string; role?: string } | undefined;
+  if (!user?.id || user.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { id } = await params;
+  if (id === user.id) return NextResponse.json({ error: "Cannot delete yourself." }, { status: 400 });
+
+  // Delete related records first
+  await prisma.auditLog.deleteMany({ where: { actorId: id } });
+  await prisma.donation.deleteMany({ where: { userId: id } });
+  await prisma.userPermission.deleteMany({ where: { userId: id } });
+  await prisma.purchaseOrder.deleteMany({ where: { procurementOfficerId: id } });
+  await prisma.user.delete({ where: { id } });
+
+  return NextResponse.json({ success: true });
+}

@@ -48,3 +48,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   await prisma.student.update({ where: { id }, data });
   return NextResponse.json({ success: true });
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await getServerSession(authOptions);
+  const user = session?.user as { id?: string; role?: string } | undefined;
+  if (!user?.id || user.role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { id } = await params;
+  await prisma.student.delete({ where: { id } });
+  return NextResponse.json({ success: true });
+}
