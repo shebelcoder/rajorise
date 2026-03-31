@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { sanitizePlain } from "@/lib/sanitize";
+import { sendEmail, welcomeEmailHtml } from "@/lib/email";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 const registerSchema = z.object({
@@ -71,6 +72,13 @@ export async function POST(req: NextRequest) {
         metadata: { email: normalizedEmail },
       },
     });
+
+    // Send welcome email
+    sendEmail({
+      to: normalizedEmail,
+      subject: "Welcome to RajoRise!",
+      html: welcomeEmailHtml(sanitizedName),
+    }).catch(() => {}); // Non-blocking
 
     return NextResponse.json({ success: true, message: "Account created. Please sign in." });
   } catch (error) {

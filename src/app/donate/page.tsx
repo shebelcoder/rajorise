@@ -29,29 +29,56 @@ function DonateForm() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [anonymous, setAnonymous] = useState(false);
+  const [payMethod, setPayMethod] = useState<"card" | "evc">("card");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [evcSuccess, setEvcSuccess] = useState("");
 
   const finalAmount = custom ? parseFloat(custom) : amount;
 
   const handleDonate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!finalAmount || finalAmount < 1) { setError("Please enter a valid amount (min $1)"); return; }
-    setError("");
+    setError(""); setEvcSuccess("");
     setLoading(true);
+
     try {
-      const res = await fetch("/api/donate/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: finalAmount, currency: "usd", category, name, email, message, anonymous,
-          reportId: caseSlug || undefined,
-          userId: (session?.user as { id?: string } | undefined)?.id || undefined,
-        }),
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else setError(data.error || "Something went wrong.");
+      if (payMethod === "evc") {
+        // EVC Plus mobile money
+        if (!phone || phone.length < 9) { setError("Enter a valid phone number"); setLoading(false); return; }
+        const res = await fetch("/api/donate/evc", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone, amount: finalAmount, currency: "USD",
+            donorName: anonymous ? undefined : name || undefined,
+            email: email || undefined,
+            reportId: caseSlug || undefined,
+            userId: (session?.user as { id?: string } | undefined)?.id || undefined,
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setEvcSuccess(data.message);
+        } else {
+          setError(data.error || "EVC payment failed.");
+        }
+      } else {
+        // Stripe card payment
+        const res = await fetch("/api/donate/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: finalAmount, currency: "usd", category, name, email, message, anonymous,
+            reportId: caseSlug || undefined,
+            userId: (session?.user as { id?: string } | undefined)?.id || undefined,
+          }),
+        });
+        const data = await res.json();
+        if (data.url) window.location.href = data.url;
+        else setError(data.error || "Something went wrong.");
+      }
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -173,9 +200,55 @@ function DonateForm() {
         </div>
       </div>
 
+      {/* Payment Method */}
+      <div>
+        <h3 className="font-semibold text-gray-900 mb-4 text-lg">Payment Method</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <button type="button" onClick={() => setPayMethod("card")} style={{
+            padding: "16px", borderRadius: 12, border: "2px solid", textAlign: "center", cursor: "pointer",
+            borderColor: payMethod === "card" ? "#16a34a" : "#e5e7eb",
+            backgroundColor: payMethod === "card" ? "#f0fdf4" : "#fff",
+          }}>
+            <span style={{ fontSize: 24, display: "block", marginBottom: 4 }}>💳</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>Card / Apple Pay</span>
+            <span style={{ fontSize: 11, color: "#6b7280", display: "block" }}>Visa, Mastercard, Apple Pay</span>
+          </button>
+          <button type="button" onClick={() => setPayMethod("evc")} style={{
+            padding: "16px", borderRadius: 12, border: "2px solid", textAlign: "center", cursor: "pointer",
+            borderColor: payMethod === "evc" ? "#16a34a" : "#e5e7eb",
+            backgroundColor: payMethod === "evc" ? "#f0fdf4" : "#fff",
+          }}>
+            <span style={{ fontSize: 24, display: "block", marginBottom: 4 }}>📱</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>EVC Plus</span>
+            <span style={{ fontSize: 11, color: "#6b7280", display: "block" }}>Hormuud / Somtel mobile money</span>
+          </button>
+        </div>
+
+        {payMethod === "evc" && (
+          <div style={{ marginTop: 12 }}>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+252 61 xxx xxxx"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-400 focus:ring-2 focus:ring-green-100 outline-none"
+            />
+            <p style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>Enter your EVC Plus phone number</p>
+          </div>
+        )}
+      </div>
+
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
           {error}
+        </div>
+      )}
+
+      {evcSuccess && (
+        <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 12, padding: "16px", textAlign: "center" }}>
+          <p style={{ fontSize: 18, marginBottom: 4 }}>✅</p>
+          <p style={{ fontSize: 14, fontWeight: 700, color: "#16a34a", margin: 0 }}>{evcSuccess}</p>
+          <a href="/impact" style={{ fontSize: 13, color: "#16a34a", marginTop: 8, display: "inline-block" }}>See Your Impact →</a>
         </div>
       )}
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
+import { sendEmail, donationReceiptHtml } from "@/lib/email";
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!);
@@ -29,14 +30,12 @@ export async function POST(req: NextRequest) {
     const amount = (session.amount_total || 0) / 100;
     const meta = session.metadata || {};
 
-    console.log(`Donation received: $${amount} | donor: ${meta.donorName || "anonymous"} | userId: ${meta.userId || "none"} | reportId: ${meta.reportId || "general"}`);
+    console.log(`Donation received: $${amount} | donor: ${meta.donorName || "anonymous"}`);
 
     try {
-      // Get or create userId for the donation record
       let userId = meta.userId;
 
       if (!userId) {
-        // For anonymous/guest donations, find or create a system "guest" user
         const guestEmail = session.customer_email || "guest@rajorise.com";
         let guestUser = await prisma.user.findUnique({ where: { email: guestEmail } });
         if (!guestUser) {
@@ -47,8 +46,7 @@ export async function POST(req: NextRequest) {
         userId = guestUser.id;
       }
 
-      // Record donation — works for both logged-in and guest donors
-      await prisma.donation.create({
+      const donation = await prisma.donation.create({
         data: {
           userId,
           reportId: meta.reportId || null,
@@ -62,7 +60,7 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // Update Report.raisedAmount if reportId exists
+      // Update Report.raisedAmount
       if (meta.reportId) {
         try {
           await prisma.report.update({
@@ -70,12 +68,40 @@ export async function POST(req: NextRequest) {
             data: { raisedAmount: { increment: amount } },
           });
         } catch {
-          // Report might not exist — that's OK for general donations
-          console.log(`Report ${meta.reportId} not found for raisedAmount update`);
+          console.log(`Report ${meta.reportId} not found`);
         }
       }
+
+      // Send donation receipt email
+      const donorEmail = session.customer_email;
+      if (donorEmail) {
+        let caseName = "General Fund";
+        if (meta.reportId) {
+          const report = await prisma.report.findUnique({ where: { id: meta.reportId }, select: { title: true } });
+          if (report) caseName = report.title;
+        }
+
+        await sendEmail({
+          to: donorEmail,
+          subject: `Thank you for your $${amount} donation — RajoRise`,
+          html: donationReceiptHtml({
+            donorName: meta.donorName || "Generous Donor",
+            amount,
+            currency: session.currency || "usd",
+            caseName,
+            date: new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
+            receiptId: donation.id,
+          }),
+        });
+
+        // Mark receipt as sent
+        await prisma.donation.update({
+          where: { id: donation.id },
+          data: { receiptSentAt: new Date() },
+        });
+      }
     } catch (err) {
-      console.error("Failed to record donation:", err);
+      console.error("Failed to process donation:", err);
     }
   }
 
