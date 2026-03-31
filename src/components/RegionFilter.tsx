@@ -99,7 +99,7 @@ export default function RegionFilter({ cases }: { cases: CaseItem[] }) {
                 overflow: "hidden",
               }}>
                 <div style={{
-                  height: 160, background: "linear-gradient(135deg, #16a34a 0%, #1d4ed8 100%)",
+                  height: 160, background: c.featuredImageUrl ? `url(${c.featuredImageUrl}) center/cover` : "linear-gradient(135deg, #16a34a 0%, #1d4ed8 100%)",
                   position: "relative", display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                   {c.isUrgent && (
@@ -128,7 +128,7 @@ export default function RegionFilter({ cases }: { cases: CaseItem[] }) {
                     color: isFullyFunded ? "#fff" : "#16a34a",
                     fontSize: "0.7rem", fontWeight: 700, padding: "0.2rem 0.6rem", borderRadius: 99,
                   }}>
-                    {isFullyFunded ? "Fully Funded" : c.status}
+                    {isFullyFunded ? "Fully Funded" : "Active"}
                   </span>
                 </div>
 
