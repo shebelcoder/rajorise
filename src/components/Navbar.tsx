@@ -45,7 +45,7 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop nav */}
-        <nav style={{ display: "flex", alignItems: "center", gap: "2rem" }} className="hidden md:flex">
+        <nav className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
           {navLinks.map((l) => (
             <Link
               key={l.href}
@@ -60,7 +60,7 @@ export default function Navbar() {
         </nav>
 
         {/* Desktop CTA */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }} className="hidden md:flex">
+        <div className="desktop-cta" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           {isLoggedIn ? (
             <Link href="/account" style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.875rem", fontWeight: 500, color: "#374151", textDecoration: "none" }}>
               <User size={16} /> {session.user?.name || "Account"}
@@ -83,8 +83,8 @@ export default function Navbar() {
         {/* Mobile hamburger */}
         <button
           onClick={() => setOpen(!open)}
-          className="md:hidden"
-          style={{ background: "none", border: "none", cursor: "pointer", padding: "0.5rem", color: "#374151" }}
+          className="mobile-menu-btn"
+          style={{ background: "none", border: "none", cursor: "pointer", padding: "0.5rem", color: "#374151", display: "none" }}
           aria-label="Toggle menu"
         >
           {open ? <X size={22} /> : <Menu size={22} />}
@@ -114,6 +114,13 @@ export default function Navbar() {
           </div>
         </div>
       )}
+      <style>{`
+        @media (max-width: 768px) {
+          .desktop-nav { display: none !important; }
+          .desktop-cta { display: none !important; }
+          .mobile-menu-btn { display: block !important; }
+        }
+      `}</style>
     </header>
   );
 }
