@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6-20260327",
+        model: "claude-sonnet-4-20250514",
         max_tokens: 3000,
         system: `You are a research writer for RajoRise, a humanitarian platform operating in Gedo region, Somalia. Write detailed, informative articles about topics relevant to the community. Focus on practical, actionable information. Consider local context: farming seasons (Gu Apr-Jun, Deyr Oct-Dec), livestock, drought, water access, education challenges. Write in clear, professional English. Format: include a compelling title, then the full article content (600-1000 words).`,
         messages: [
@@ -47,7 +47,12 @@ export async function POST(req: NextRequest) {
     if (!response.ok) {
       const errText = await response.text();
       console.error("AI research API error:", response.status, errText);
-      return NextResponse.json({ error: `AI research failed (${response.status}). Check ANTHROPIC_API_KEY.` }, { status: 500 });
+      // Fallback to rule-based research
+      return NextResponse.json({
+        title: `${topic} — Gedo Region Report`,
+        content: generateFallbackArticle(topic),
+        category: "research",
+      });
     }
 
     const result = await response.json();
@@ -66,6 +71,53 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ title: `${topic}`, content: text, category: "research" });
   } catch (error) {
     console.error("AI research error:", error);
-    return NextResponse.json({ error: "Research generation failed." }, { status: 500 });
+    return NextResponse.json({
+      title: `${topic} — Gedo Region Report`,
+      content: generateFallbackArticle(topic),
+      category: "research",
+    });
   }
+}
+
+function generateFallbackArticle(topic: string): string {
+  const month = new Date().toLocaleDateString("en", { month: "long", year: "numeric" });
+  const season = (() => {
+    const m = new Date().getMonth();
+    if (m >= 3 && m <= 5) return "Gu (main rainy season, April-June)";
+    if (m >= 9 && m <= 11) return "Deyr (short rainy season, October-December)";
+    if (m >= 0 && m <= 2) return "Jilaal (dry season, January-March)";
+    return "Hagaa (dry season, July-September)";
+  })();
+
+  return `${topic}
+
+Report for Gedo Region, Somalia — ${month}
+
+Current Season: ${season}
+
+Overview:
+The Gedo region in southern Somalia faces unique challenges and opportunities related to "${topic}". As one of the most underserved regions, communities here depend heavily on seasonal patterns for their livelihoods.
+
+Context:
+During ${season}, communities in Gedo's seven districts — Baardheere, Luuq, Doolow, Garbaharey, Belet Xaawo, Ceel Waaq, and Burdhuubo — experience conditions that directly impact this topic. The Juba River, which flows through the region, plays a critical role in agriculture and daily life.
+
+Key Considerations:
+1. Water access remains the primary challenge during dry seasons
+2. Small-scale farming along the Juba River banks supports many families
+3. Livestock management is central to the pastoral economy
+4. Education access is limited, especially in remote villages
+5. Health services are concentrated in district capitals
+
+Community Impact:
+The topic of "${topic}" is particularly relevant to communities in Gedo because of the region's vulnerability to climate variability, limited infrastructure, and ongoing displacement. RajoRise works with field journalists to document these challenges and connect them with donors who can help.
+
+Recommendations:
+- Prioritize support for the most affected communities
+- Coordinate with local leaders and existing aid organizations
+- Document outcomes for transparency and donor confidence
+- Plan interventions around seasonal cycles for maximum impact
+
+This report was generated for the RajoRise platform. For AI-powered detailed analysis, add credits to your Anthropic API account.
+
+Note: This is a template report. With Claude API credits, the AI will generate detailed, data-driven research specific to your topic.`;
 }

@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
             "anthropic-version": "2023-06-01",
           },
           body: JSON.stringify({
-            model: "claude-sonnet-4-6-20260327",
+            model: "claude-sonnet-4-20250514",
             max_tokens: 2000,
             system: `You write practical farming and agriculture news for communities in Somalia's Gedo region. Current season: ${seasonData.season}. Month: ${seasonData.month}. Write in simple, clear English that can be translated to Somali. Focus on actionable advice.`,
             messages: [
