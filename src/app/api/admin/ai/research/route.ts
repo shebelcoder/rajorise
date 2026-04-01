@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6-20260327",
         max_tokens: 3000,
         system: `You are a research writer for RajoRise, a humanitarian platform operating in Gedo region, Somalia. Write detailed, informative articles about topics relevant to the community. Focus on practical, actionable information. Consider local context: farming seasons (Gu Apr-Jun, Deyr Oct-Dec), livestock, drought, water access, education challenges. Write in clear, professional English. Format: include a compelling title, then the full article content (600-1000 words).`,
         messages: [
@@ -45,7 +45,9 @@ export async function POST(req: NextRequest) {
     });
 
     if (!response.ok) {
-      return NextResponse.json({ error: "AI research failed." }, { status: 500 });
+      const errText = await response.text();
+      console.error("AI research API error:", response.status, errText);
+      return NextResponse.json({ error: `AI research failed (${response.status}). Check ANTHROPIC_API_KEY.` }, { status: 500 });
     }
 
     const result = await response.json();
