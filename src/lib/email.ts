@@ -2,7 +2,8 @@ import { Resend } from "resend";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-const FROM_EMAIL = "RajoRise <noreply@rajorise.com>";
+// Use verified domain, fallback to Resend onboarding if domain not fully verified
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "RajoRise <onboarding@resend.dev>";
 
 interface SendEmailParams {
   to: string;
