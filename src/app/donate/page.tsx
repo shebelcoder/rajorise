@@ -255,19 +255,28 @@ function DonateForm() {
       {/* Submit */}
       <button
         type="submit"
-        disabled={!finalAmount || loading}
-        className="w-full btn-primary justify-center text-lg py-4 disabled:opacity-50"
+        disabled={!finalAmount || loading || (payMethod === "evc" && !phone)}
+        style={{
+          width: "100%", padding: "1rem", borderRadius: 12, border: "none",
+          backgroundColor: !finalAmount || loading ? "#9ca3af" : "#16a34a",
+          color: "#fff", fontWeight: 700, fontSize: "1.1rem",
+          cursor: loading ? "wait" : "pointer", display: "flex",
+          alignItems: "center", justifyContent: "center", gap: 8,
+        }}
       >
         {loading ? (
-          <span className="flex items-center gap-2">
-            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            Redirecting to Stripe...
-          </span>
+          <>
+            <span style={{ width: 20, height: 20, border: "2px solid rgba(255,255,255,0.3)", borderTop: "2px solid #fff", borderRadius: "50%", display: "inline-block", animation: "spin 1s linear infinite" }} />
+            {payMethod === "evc" ? "Processing EVC Plus..." : "Redirecting to Stripe..."}
+          </>
         ) : (
-          <span className="flex items-center gap-2">
-            <Heart className="w-5 h-5 fill-white" />
-            Donate {finalAmount ? `$${finalAmount}` : "Now"}
-          </span>
+          <>
+            {payMethod === "evc" ? "📱" : <Heart style={{ width: 20, height: 20, fill: "#fff" }} />}
+            {payMethod === "evc"
+              ? `Pay ${finalAmount ? `$${finalAmount}` : ""} via EVC Plus`
+              : `Donate ${finalAmount ? `$${finalAmount}` : "Now"}`
+            }
+          </>
         )}
       </button>
 

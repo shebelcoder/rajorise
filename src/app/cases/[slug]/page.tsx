@@ -3,6 +3,18 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { MapPin, Heart, ArrowLeft, Calendar } from "lucide-react";
 import { formatLocation } from "@/lib/locations";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const r = await prisma.report.findUnique({ where: { slug }, select: { title: true, summary: true } });
+  if (!r) return { title: "Case Not Found" };
+  return {
+    title: `${r.title} — RajoRise`,
+    description: r.summary.slice(0, 160),
+    openGraph: { title: r.title, description: r.summary.slice(0, 160) },
+  };
+}
 
 export default async function CaseDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

@@ -2,6 +2,18 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, MapPin, Calendar, Camera, Brain, Zap } from "lucide-react";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const s = await prisma.story.findUnique({ where: { slug }, select: { title: true, summary: true } });
+  if (!s) return { title: "Story Not Found" };
+  return {
+    title: `${s.title} — RajoRise`,
+    description: (s.summary || "").slice(0, 160),
+    openGraph: { title: s.title, description: (s.summary || "").slice(0, 160) },
+  };
+}
 
 export default async function StoryDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

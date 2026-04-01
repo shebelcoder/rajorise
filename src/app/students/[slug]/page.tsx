@@ -3,6 +3,18 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { MapPin, Heart, GraduationCap, ArrowLeft } from "lucide-react";
 import { formatLocation } from "@/lib/locations";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const s = await prisma.student.findUnique({ where: { slug }, select: { name: true, story: true, region: true } });
+  if (!s) return { title: "Student Not Found" };
+  return {
+    title: `Sponsor ${s.name} — RajoRise`,
+    description: s.story.slice(0, 160),
+    openGraph: { title: `Sponsor ${s.name}`, description: s.story.slice(0, 160) },
+  };
+}
 
 export default async function StudentDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

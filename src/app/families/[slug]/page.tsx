@@ -3,6 +3,18 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { MapPin, Heart, Users, ArrowLeft } from "lucide-react";
 import { formatLocation } from "@/lib/locations";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const f = await prisma.family.findUnique({ where: { slug }, select: { name: true, story: true } });
+  if (!f) return { title: "Family Not Found" };
+  return {
+    title: `Support ${f.name} — RajoRise`,
+    description: f.story.slice(0, 160),
+    openGraph: { title: `Support ${f.name}`, description: f.story.slice(0, 160) },
+  };
+}
 
 export default async function FamilyDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
