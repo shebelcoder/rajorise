@@ -27,6 +27,7 @@ const NAV = [
   { label: "Students", href: "/admin/students", icon: GraduationCap },
   { label: "Families", href: "/admin/families", icon: Home },
   { label: "Stories", href: "/admin/stories", icon: BookOpen },
+  { label: "Villages", href: "/admin/villages", icon: Globe },
   { label: "Journalists", href: "/admin/journalists", icon: Camera },
   { label: "Finance", href: "/admin/finance", icon: DollarSign },
   { label: "Operations", href: "/admin/operations", icon: Globe },

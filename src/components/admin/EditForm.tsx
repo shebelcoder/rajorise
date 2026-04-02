@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import { Save, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
 import { REGIONS, getDistricts } from "@/lib/locations";
 import VillageSelector from "@/components/VillageSelector";
+import ImageUpload from "@/components/ImageUpload";
 
 interface Field {
   key: string;
   label: string;
-  type: "text" | "textarea" | "number" | "select" | "region" | "district" | "village" | "url" | "boolean";
+  type: "text" | "textarea" | "number" | "select" | "region" | "district" | "village" | "url" | "image" | "boolean";
   options?: { value: string; label: string }[];
   required?: boolean;
 }
@@ -142,10 +143,17 @@ export default function AdminEditForm({ entityType, entityId, fields, backUrl, t
                 </div>
               );
             }
+            if (f.type === "url" || f.type === "image") {
+              return (
+                <div key={f.key}>
+                  <ImageUpload value={(form[f.key] as string) || ""} onChange={(v) => set(f.key, v)} label={f.label} />
+                </div>
+              );
+            }
             return (
               <div key={f.key}>
                 <label style={labelStyle}>{f.label}</label>
-                <input type={f.type === "number" ? "number" : f.type === "url" ? "url" : "text"} value={form[f.key] as string || ""} onChange={(e) => set(f.key, e.target.value)} style={inputStyle} />
+                <input type={f.type === "number" ? "number" : "text"} value={form[f.key] as string || ""} onChange={(e) => set(f.key, e.target.value)} style={inputStyle} />
               </div>
             );
           })}
