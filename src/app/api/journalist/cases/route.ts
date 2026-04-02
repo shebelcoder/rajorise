@@ -14,6 +14,7 @@ const caseSchema = z.object({
   village: z.string().max(100).default(""),
   goalAmount: z.string().default("0"),
   coverImageUrl: z.string().max(2000000).default(""),
+  storyImageUrl: z.string().max(2000000).default(""),
   submitForReview: z.boolean().default(false),
 });
 
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid input." }, { status: 400 });
     }
 
-    const { title, story, region, district, village, goalAmount, coverImageUrl, submitForReview } = parsed.data;
+    const { title, story, region, district, village, goalAmount, coverImageUrl, storyImageUrl, submitForReview } = parsed.data;
 
     if (submitForReview && (title.length < 5 || story.length < 50)) {
       return NextResponse.json({ error: "Title (5+) and story (50+) required to submit." }, { status: 400 });
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
         currency: "USD",
         journalistId: user.id,
         featuredImageUrl: coverImageUrl || null,
-        mediaUrls: [],
+        mediaUrls: storyImageUrl ? [storyImageUrl] : [],
         status,
       },
     });

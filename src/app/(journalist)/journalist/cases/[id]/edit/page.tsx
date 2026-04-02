@@ -29,6 +29,7 @@ export default async function EditCasePage({
       village: true,
       goalAmount: true,
       featuredImageUrl: true,
+      mediaUrls: true,
       status: true,
     },
   });
@@ -44,6 +45,7 @@ export default async function EditCasePage({
     village: report.village || "",
     goalAmount: Number(report.goalAmount).toString(),
     coverImageUrl: report.featuredImageUrl || "",
+    storyImageUrl: report.mediaUrls?.[0] || "",
     status: report.status,
   };
 

@@ -15,6 +15,7 @@ interface CaseData {
   village: string;
   goalAmount: string;
   coverImageUrl: string;
+  storyImageUrl: string;
   status?: string;
 }
 
@@ -26,6 +27,7 @@ const INITIAL: CaseData = {
   village: "",
   goalAmount: "",
   coverImageUrl: "",
+  storyImageUrl: "",
 };
 
 export default function CaseEditor({ initialData }: { initialData?: CaseData }) {
@@ -201,11 +203,18 @@ export default function CaseEditor({ initialData }: { initialData?: CaseData }) 
         </div>
 
         {/* Cover image */}
-        <ImageUpload
-          value={form.coverImageUrl}
-          onChange={(url) => setForm((f) => ({ ...f, coverImageUrl: url }))}
-          label="Cover Image"
-        />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <ImageUpload
+            value={form.coverImageUrl}
+            onChange={(url) => setForm((f) => ({ ...f, coverImageUrl: url }))}
+            label="Banner Image (background)"
+          />
+          <ImageUpload
+            value={form.storyImageUrl}
+            onChange={(url) => setForm((f) => ({ ...f, storyImageUrl: url }))}
+            label="Story Image (visible beside text)"
+          />
+        </div>
 
         {/* Messages */}
         {error && (
