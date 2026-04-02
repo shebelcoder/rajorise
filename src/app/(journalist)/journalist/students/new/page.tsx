@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Save, Send, AlertCircle, CheckCircle, GraduationCap } from "lucide-react";
-import { REGIONS, getDistricts, getVillages } from "@/lib/locations";
+import { REGIONS, getDistricts } from "@/lib/locations";
 import ImageUpload from "@/components/ImageUpload";
+import VillageSelector from "@/components/VillageSelector";
 
 export default function NewStudentPage() {
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function NewStudentPage() {
 
   const activeRegions = REGIONS.filter((r) => r.active);
   const districts = getDistricts(form.region);
-  const villages = getVillages(form.region, form.district);
+  // Villages loaded dynamically by VillageSelector
   const canSubmit = form.name.length >= 2 && form.story.length >= 20 && form.district;
 
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
@@ -71,13 +72,8 @@ export default function NewStudentPage() {
                 <option value="">Select</option>
                 {districts.map((d) => <option key={d.name} value={d.name}>{d.name}</option>)}
               </select></div>
-            <div><label style={labelStyle}>Village</label>
-              {villages.length > 0 ? (
-                <select value={form.village} onChange={set("village")} style={inputStyle}>
-                  <option value="">Select</option>
-                  {villages.map((v) => <option key={v} value={v}>{v}</option>)}
-                </select>
-              ) : <input value={form.village} onChange={set("village")} placeholder="Village name" style={inputStyle} />}
+            <div><label style={labelStyle}>Village / Town</label>
+              <VillageSelector region={form.region} district={form.district} value={form.village} onChange={(v) => setForm((f) => ({ ...f, village: v }))} />
             </div>
           </div>
 

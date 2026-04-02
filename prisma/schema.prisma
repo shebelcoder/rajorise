@@ -81,6 +81,21 @@ model UserPermission {
   @@unique([userId, permissionId])
 }
 
+// ── VILLAGES (dynamic, user-addable) ──────────────────
+
+model Village {
+  id        String   @id @default(cuid())
+  name      String
+  district  String
+  region    String   @default("Gedo")
+  addedById String?
+  createdAt DateTime @default(now())
+
+  @@unique([name, district, region])
+  @@index([district])
+  @@index([region])
+}
+
 // ── CASES / REPORTS ───────────────────────────────────
 
 model Report {

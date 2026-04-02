@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Save, AlertCircle, CheckCircle } from "lucide-react";
-import { REGIONS, getDistricts, getVillages } from "@/lib/locations";
+import { REGIONS, getDistricts } from "@/lib/locations";
 import ImageUpload from "@/components/ImageUpload";
+import VillageSelector from "@/components/VillageSelector";
 
 interface Field {
   key: string;
@@ -30,7 +31,7 @@ export default function AdminCreateForm({ entityType, fields, backUrl, title, su
   const region = (form.region as string) || "Gedo";
   const district = (form.district as string) || "";
   const districts = getDistricts(region);
-  const villages = getVillages(region, district);
+  // Villages loaded dynamically by VillageSelector
 
   const set = (key: string, value: string | boolean) => setForm((f) => ({ ...f, [key]: value }));
 
@@ -76,7 +77,7 @@ export default function AdminCreateForm({ entityType, fields, backUrl, title, su
               return <div key={f.key}><label style={labelStyle}>{f.label}</label><select value={district} onChange={(e) => { set("district", e.target.value); set("village", ""); }} style={inputStyle}><option value="">Select</option>{districts.map(d => <option key={d.name} value={d.name}>{d.name}</option>)}</select></div>;
             }
             if (f.type === "village") {
-              return <div key={f.key}><label style={labelStyle}>{f.label}</label>{villages.length > 0 ? <select value={(form.village as string) || ""} onChange={(e) => set("village", e.target.value)} style={inputStyle}><option value="">Select</option>{villages.map(v => <option key={v} value={v}>{v}</option>)}</select> : <input value={(form.village as string) || ""} onChange={(e) => set("village", e.target.value)} style={inputStyle} />}</div>;
+              return <div key={f.key}><label style={labelStyle}>{f.label}</label><VillageSelector region={region} district={district} value={(form.village as string) || ""} onChange={(v) => set("village", v)} /></div>;
             }
             if (f.type === "boolean") {
               return <div key={f.key} style={{ display: "flex", alignItems: "center", gap: 10 }}><input type="checkbox" checked={form[f.key] === true} onChange={(e) => set(f.key, e.target.checked)} /><label style={{ fontSize: 13, color: "#8b949e" }}>{f.label}</label></div>;

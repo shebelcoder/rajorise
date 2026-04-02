@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Save, Send, AlertCircle, CheckCircle } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
-import { REGIONS, getDistricts, getVillages } from "@/lib/locations";
+import { REGIONS, getDistricts } from "@/lib/locations";
+import VillageSelector from "@/components/VillageSelector";
 
 interface CaseData {
   id?: string;
@@ -40,7 +41,6 @@ export default function CaseEditor({ initialData }: { initialData?: CaseData }) 
 
   const activeRegions = REGIONS.filter((r) => r.active);
   const districts = getDistricts(form.region);
-  const villages = getVillages(form.region, form.district);
 
   const isEdit = !!form.id;
   const canSubmit = form.title.length >= 5 && form.story.length >= 50 && form.district;
@@ -160,17 +160,13 @@ export default function CaseEditor({ initialData }: { initialData?: CaseData }) 
             </select>
           </div>
           <div>
-            <label style={labelStyle}>Village</label>
-            {villages.length > 0 ? (
-              <select value={form.village} onChange={set("village")} style={inputStyle}>
-                <option value="">Select village</option>
-                {villages.map((v) => (
-                  <option key={v} value={v}>{v}</option>
-                ))}
-              </select>
-            ) : (
-              <input type="text" value={form.village} onChange={set("village")} placeholder="Village name" style={inputStyle} />
-            )}
+            <label style={labelStyle}>Village / Town</label>
+            <VillageSelector
+              region={form.region}
+              district={form.district}
+              value={form.village}
+              onChange={(v) => setForm((f) => ({ ...f, village: v }))}
+            />
           </div>
         </div>
 

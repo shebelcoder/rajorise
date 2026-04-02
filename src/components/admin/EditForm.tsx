@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Save, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
-import { REGIONS, getDistricts, getVillages } from "@/lib/locations";
+import { REGIONS, getDistricts } from "@/lib/locations";
+import VillageSelector from "@/components/VillageSelector";
 
 interface Field {
   key: string;
@@ -33,7 +34,7 @@ export default function AdminEditForm({ entityType, entityId, fields, backUrl, t
   const region = (form.region as string) || "Gedo";
   const district = (form.district as string) || "";
   const districts = getDistricts(region);
-  const villages = getVillages(region, district);
+  // Villages loaded dynamically by VillageSelector
 
   useEffect(() => {
     fetch(`/api/admin/${entityType}/${entityId}`)
@@ -129,14 +130,7 @@ export default function AdminEditForm({ entityType, entityId, fields, backUrl, t
               return (
                 <div key={f.key}>
                   <label style={labelStyle}>{f.label}</label>
-                  {villages.length > 0 ? (
-                    <select value={form[f.key] as string || ""} onChange={(e) => set(f.key, e.target.value)} style={inputStyle}>
-                      <option value="">Select</option>
-                      {villages.map((v) => <option key={v} value={v}>{v}</option>)}
-                    </select>
-                  ) : (
-                    <input value={form[f.key] as string || ""} onChange={(e) => set(f.key, e.target.value)} style={inputStyle} />
-                  )}
+                  <VillageSelector region={region} district={district} value={(form[f.key] as string) || ""} onChange={(v) => set(f.key, v)} />
                 </div>
               );
             }
