@@ -45,10 +45,20 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ sl
         </div>
       </div>
 
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "2.5rem 1.25rem" }}>
-        <article style={{ fontSize: 16, color: "#374151", lineHeight: 1.9, whiteSpace: "pre-wrap" }}>
-          {story.content}
-        </article>
+      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "2.5rem 1.25rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: story.storyImageUrl ? "1fr 360px" : "1fr", gap: 32 }}>
+          <article style={{ fontSize: 16, color: "#374151", lineHeight: 1.9, whiteSpace: "pre-wrap" }}>
+            {story.content}
+          </article>
+
+          {story.storyImageUrl && (
+            <div>
+              <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid #e5e7eb", position: "sticky", top: 80 }}>
+                <img src={story.storyImageUrl} alt={story.title} style={{ width: "100%", height: "auto", display: "block" }} />
+              </div>
+            </div>
+          )}
+        </div>
 
         <div style={{ marginTop: "3rem", padding: "2rem", backgroundColor: "#f0fdf4", borderRadius: 16, border: "1px solid #bbf7d0", textAlign: "center" }}>
           <h3 style={{ fontSize: 18, fontWeight: 700, color: "#111827", marginBottom: 8 }}>Want to make an impact?</h3>

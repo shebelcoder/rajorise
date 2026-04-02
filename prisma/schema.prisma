@@ -204,6 +204,7 @@ model Story {
   content      String      @db.Text
   summary      String?
   imageUrl     String?
+  storyImageUrl String?
   // JOURNALIST = written by journalist, AUTO = system-generated, AI = AI-generated
   source       StorySource @default(JOURNALIST)
   category     String?     // success, milestone, farming, agriculture, seasonal, news

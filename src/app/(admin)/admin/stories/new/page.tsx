@@ -31,7 +31,7 @@ const RESEARCH_TOPICS = [
 
 export default function AdminNewStoryPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ title: "", content: "", category: "news", region: "Gedo", imageUrl: "" });
+  const [form, setForm] = useState({ title: "", content: "", category: "news", region: "Gedo", imageUrl: "", storyImageUrl: "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -132,7 +132,10 @@ export default function AdminNewStoryPage() {
               <p style={{ fontSize: 11, color: "#484f58", marginTop: 4 }}>{form.content.length} characters</p>
             </div>
 
-            <ImageUpload value={form.imageUrl} onChange={(url) => setForm(f => ({ ...f, imageUrl: url }))} label="Cover Image" />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <ImageUpload value={form.imageUrl} onChange={(url) => setForm(f => ({ ...f, imageUrl: url }))} label="Banner Image (background)" />
+              <ImageUpload value={form.storyImageUrl} onChange={(url) => setForm(f => ({ ...f, storyImageUrl: url }))} label="Story Image (visible beside text)" />
+            </div>
 
             {error && <div style={{ display: "flex", alignItems: "center", gap: 8, backgroundColor: "#2c0f0f", border: "1px solid #da3633", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#f85149" }}><AlertCircle size={14} /> {error}</div>}
             {success && <div style={{ display: "flex", alignItems: "center", gap: 8, backgroundColor: "#0f2c1a", border: "1px solid #238636", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#3fb950" }}><CheckCircle size={14} /> {success}</div>}

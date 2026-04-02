@@ -17,7 +17,7 @@ const CATEGORIES = [
 
 export default function NewStoryPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ title: "", content: "", category: "success", region: "Gedo", imageUrl: "", relatedType: "", relatedId: "" });
+  const [form, setForm] = useState({ title: "", content: "", category: "success", region: "Gedo", imageUrl: "", storyImageUrl: "", relatedType: "", relatedId: "" });
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -85,7 +85,10 @@ export default function NewStoryPage() {
             <p style={{ fontSize: 11, color: form.content.length >= 50 ? "#22c55e" : "#484f58", marginTop: 4 }}>{form.content.length} chars {form.content.length < 50 ? `(need ${50 - form.content.length} more)` : "✓"}</p>
           </div>
 
-          <ImageUpload value={form.imageUrl} onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))} label="Cover Image" />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <ImageUpload value={form.imageUrl} onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))} label="Banner Image (background)" />
+            <ImageUpload value={form.storyImageUrl} onChange={(url) => setForm((f) => ({ ...f, storyImageUrl: url }))} label="Story Image (visible beside text)" />
+          </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div><label style={labelStyle}>Related to (optional)</label>
