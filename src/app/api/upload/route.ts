@@ -3,8 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
-const MAX_SIZE = 2 * 1024 * 1024; // 2MB (after client compression)
-
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   const user = session?.user as { id?: string; role?: string } | undefined;
@@ -26,13 +24,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid image data." }, { status: 400 });
     }
 
-    // Check size (base64 is ~33% larger than binary)
-    const sizeBytes = Math.ceil((dataUrl.length * 3) / 4);
-    if (sizeBytes > MAX_SIZE) {
-      return NextResponse.json({ error: "Image too large after compression. Try a smaller image." }, { status: 400 });
+    // If Cloudinary is configured, upload there
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
+      const { uploadImage } = await import("@/lib/cloudinary");
+      const url = await uploadImage(dataUrl);
+      return NextResponse.json({ success: true, url });
     }
 
-    // Return the data URL directly — it's stored in the DB as the image URL
+    // Fallback: return base64 data URL (works but doesn't scale)
+    const sizeBytes = Math.ceil((dataUrl.length * 3) / 4);
+    if (sizeBytes > 2 * 1024 * 1024) {
+      return NextResponse.json({ error: "Image too large. Configure Cloudinary for larger uploads." }, { status: 400 });
+    }
+
     return NextResponse.json({ success: true, url: dataUrl });
   } catch (error) {
     console.error("Upload error:", error);

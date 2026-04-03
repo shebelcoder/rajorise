@@ -69,9 +69,22 @@ export default function ImageUpload({ value, onChange, label = "Photo" }: ImageU
     setUploading(true);
 
     try {
-      // Compress client-side — no server upload needed
+      // Compress client-side first
       const dataUrl = await compressImage(file);
-      onChange(dataUrl);
+
+      // Upload to server (Cloudinary if configured, else base64)
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dataUrl }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.url) {
+        onChange(data.url);
+      } else {
+        setError(data.error || "Upload failed.");
+      }
     } catch {
       setError("Failed to process image.");
     } finally {
