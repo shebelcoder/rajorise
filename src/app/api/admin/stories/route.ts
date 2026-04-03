@@ -22,6 +22,8 @@ export async function POST(req: NextRequest) {
       summary: sanitizePlain((body.content || "").slice(0, 200)),
       imageUrl: body.imageUrl || null,
       storyImageUrl: body.storyImageUrl || null,
+      videoUrl: body.videoUrl || null,
+      pdfUrl: body.pdfUrl || null,
       source: body.source || "JOURNALIST",
       category: body.category || "news",
       region: body.region || null,

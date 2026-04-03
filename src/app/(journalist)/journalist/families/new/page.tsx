@@ -9,7 +9,7 @@ import VillageSelector from "@/components/VillageSelector";
 
 export default function NewFamilyPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", members: "", situation: "", need: "", region: "Gedo", district: "", village: "", story: "", imageUrl: "", phoneContact: "", goalAmount: "" });
+  const [form, setForm] = useState({ name: "", members: "", situation: "", need: "", region: "Gedo", district: "", village: "", story: "", imageUrl: "", storyImageUrl: "", phoneContact: "", goalAmount: "" });
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -93,7 +93,10 @@ export default function NewFamilyPage() {
             <p style={{ fontSize: 11, color: form.story.length >= 20 ? "#22c55e" : "#484f58", marginTop: 4 }}>{form.story.length} chars {form.story.length < 20 ? `(need ${20 - form.story.length} more)` : "✓"}</p>
           </div>
 
-          <ImageUpload value={form.imageUrl} onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))} label="Family Photo" />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <ImageUpload value={form.imageUrl} onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))} label="Banner Image" />
+            <ImageUpload value={form.storyImageUrl} onChange={(url) => setForm((f) => ({ ...f, storyImageUrl: url }))} label="Family Photo (visible)" />
+          </div>
 
           {error && <div style={{ display: "flex", alignItems: "center", gap: 8, backgroundColor: "#2c0f0f", border: "1px solid #da3633", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#f85149" }}><AlertCircle size={14} /> {error}</div>}
           {success && <div style={{ display: "flex", alignItems: "center", gap: 8, backgroundColor: "#0f2c1a", border: "1px solid #238636", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#3fb950" }}><CheckCircle size={14} /> {success}</div>}

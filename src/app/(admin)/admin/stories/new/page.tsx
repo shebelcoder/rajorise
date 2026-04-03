@@ -31,7 +31,7 @@ const RESEARCH_TOPICS = [
 
 export default function AdminNewStoryPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ title: "", content: "", category: "news", region: "Gedo", imageUrl: "", storyImageUrl: "" });
+  const [form, setForm] = useState({ title: "", content: "", category: "news", region: "Gedo", imageUrl: "", storyImageUrl: "", videoUrl: "", pdfUrl: "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -137,7 +137,19 @@ export default function AdminNewStoryPage() {
               <ImageUpload value={form.storyImageUrl} onChange={(url) => setForm(f => ({ ...f, storyImageUrl: url }))} label="Story Image (visible beside text)" />
             </div>
 
-            {error && <div style={{ display: "flex", alignItems: "center", gap: 8, backgroundColor: "#2c0f0f", border: "1px solid #da3633", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#f85149" }}><AlertCircle size={14} /> {error}</div>}
+            {/* Video + PDF */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#8b949e", marginBottom: 6 }}>Video URL (YouTube/Vimeo)</label>
+                <input value={form.videoUrl} onChange={set("videoUrl")} placeholder="https://youtube.com/watch?v=..." style={{ width: "100%", padding: "10px 14px", backgroundColor: "#0d1117", border: "1px solid #21262d", borderRadius: 8, color: "#e6edf3", fontSize: 13, outline: "none" }} />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#8b949e", marginBottom: 6 }}>PDF Document URL</label>
+                <input value={form.pdfUrl} onChange={set("pdfUrl")} placeholder="https://..." style={{ width: "100%", padding: "10px 14px", backgroundColor: "#0d1117", border: "1px solid #21262d", borderRadius: 8, color: "#e6edf3", fontSize: 13, outline: "none" }} />
+              </div>
+            </div>
+
+            {error &&<div style={{ display: "flex", alignItems: "center", gap: 8, backgroundColor: "#2c0f0f", border: "1px solid #da3633", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#f85149" }}><AlertCircle size={14} /> {error}</div>}
             {success && <div style={{ display: "flex", alignItems: "center", gap: 8, backgroundColor: "#0f2c1a", border: "1px solid #238636", borderRadius: 8, padding: "10px 14px", fontSize: 12, color: "#3fb950" }}><CheckCircle size={14} /> {success}</div>}
 
             <button onClick={save} disabled={saving || !form.title || !form.content} style={{

@@ -150,6 +150,7 @@ model Student {
   village      String?
   story        String       @db.Text
   imageUrl     String?
+  storyImageUrl String?
   goalAmount   Decimal      @db.Decimal(12, 2)
   raisedAmount Decimal      @default(0) @db.Decimal(12, 2)
   currency     String       @default("USD")
@@ -180,6 +181,7 @@ model Family {
   story        String       @db.Text
   need         String?
   imageUrl     String?
+  storyImageUrl String?
   phoneContact String?
   goalAmount   Decimal      @db.Decimal(12, 2)
   raisedAmount Decimal      @default(0) @db.Decimal(12, 2)
@@ -205,6 +207,8 @@ model Story {
   summary      String?
   imageUrl     String?
   storyImageUrl String?
+  videoUrl     String?
+  pdfUrl       String?
   // JOURNALIST = written by journalist, AUTO = system-generated, AI = AI-generated
   source       StorySource @default(JOURNALIST)
   category     String?     // success, milestone, farming, agriculture, seasonal, news

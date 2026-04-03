@@ -47,11 +47,51 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ sl
 
       <div style={{ maxWidth: 1000, margin: "0 auto", padding: "2.5rem 1.25rem" }}>
         <div style={{ display: "grid", gridTemplateColumns: story.storyImageUrl ? "1fr 360px" : "1fr", gap: 32 }}>
-          <article style={{ fontSize: 16, color: "#374151", lineHeight: 1.9, whiteSpace: "pre-wrap" }}>
-            {story.content}
-          </article>
+          <div>
+            <article style={{ fontSize: 16, color: "#374151", lineHeight: 1.9, whiteSpace: "pre-wrap" }}>
+              {story.content}
+            </article>
 
-          {story.storyImageUrl && (
+            {/* Video player */}
+            {story.videoUrl && (
+              <div style={{ marginTop: 24, borderRadius: 16, overflow: "hidden", border: "1px solid #e5e7eb" }}>
+                {story.videoUrl.includes("youtube.com") || story.videoUrl.includes("youtu.be") ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${story.videoUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]+)/)?.[1] || ""}`}
+                    style={{ width: "100%", height: 400, border: "none" }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video controls style={{ width: "100%", maxHeight: 400 }}>
+                    <source src={story.videoUrl} />
+                  </video>
+                )}
+              </div>
+            )}
+
+            {/* PDF download */}
+            {story.pdfUrl && (
+              <div style={{ marginTop: 20, backgroundColor: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 24 }}>📄</span>
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: "#111827", margin: 0 }}>Document attached</p>
+                    <p style={{ fontSize: 12, color: "#6b7280", margin: 0 }}>View or download the PDF report</p>
+                  </div>
+                </div>
+                <a href={story.pdfUrl} target="_blank" rel="noopener noreferrer" style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  backgroundColor: "#16a34a", color: "#fff", padding: "8px 16px",
+                  borderRadius: 8, fontWeight: 700, fontSize: 13, textDecoration: "none",
+                }}>
+                  View PDF
+                </a>
+              </div>
+            )}
+          </div>
+
+          {(story.storyImageUrl) && (
             <div>
               <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid #e5e7eb", position: "sticky", top: 80 }}>
                 <img src={story.storyImageUrl} alt={story.title} style={{ width: "100%", height: "auto", display: "block" }} />

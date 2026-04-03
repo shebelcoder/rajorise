@@ -17,7 +17,7 @@ const CATEGORIES = [
 
 export default function NewStoryPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ title: "", content: "", category: "success", region: "Gedo", imageUrl: "", storyImageUrl: "", relatedType: "", relatedId: "" });
+  const [form, setForm] = useState({ title: "", content: "", category: "success", region: "Gedo", imageUrl: "", storyImageUrl: "", videoUrl: "", pdfUrl: "", relatedType: "", relatedId: "" });
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -88,6 +88,15 @@ export default function NewStoryPage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <ImageUpload value={form.imageUrl} onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))} label="Banner Image (background)" />
             <ImageUpload value={form.storyImageUrl} onChange={(url) => setForm((f) => ({ ...f, storyImageUrl: url }))} label="Story Image (visible beside text)" />
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div><label style={labelStyle}>Video URL (YouTube/Vimeo)</label>
+              <input value={form.videoUrl} onChange={set("videoUrl")} placeholder="https://youtube.com/watch?v=..." style={inputStyle} />
+            </div>
+            <div><label style={labelStyle}>PDF Document URL</label>
+              <input value={form.pdfUrl} onChange={set("pdfUrl")} placeholder="https://..." style={inputStyle} />
+            </div>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>

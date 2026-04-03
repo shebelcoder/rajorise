@@ -47,8 +47,8 @@ export default async function FamilyDetailPage({ params }: { params: Promise<{ s
         </div>
       </div>
 
-      <div style={{ maxWidth: 800, margin: "0 auto", padding: "2rem 1.25rem" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24 }}>
+      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "2rem 1.25rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: family.storyImageUrl ? "1fr 380px" : "2fr 1fr", gap: 28 }}>
           <div>
             {family.need && (
               <div style={{ backgroundColor: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 14, color: "#dc2626", fontWeight: 600 }}>
@@ -59,6 +59,12 @@ export default async function FamilyDetailPage({ params }: { params: Promise<{ s
             <p style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{family.story}</p>
           </div>
 
+          <div>
+            {family.storyImageUrl && (
+              <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid #e5e7eb", marginBottom: 20 }}>
+                <img src={family.storyImageUrl} alt={family.name} style={{ width: "100%", height: "auto", display: "block" }} />
+              </div>
+            )}
           <div style={{ backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: 16, padding: 24, height: "fit-content", position: "sticky", top: 80 }}>
             {goal > 0 && (
               <div style={{ marginBottom: 20 }}>
@@ -83,6 +89,7 @@ export default async function FamilyDetailPage({ params }: { params: Promise<{ s
             >
               {pct >= 100 ? "Fully Funded ✓" : <><Heart size={18} style={{ fill: "#fff" }} /> Support {family.name}</>}
             </Link>
+          </div>
           </div>
         </div>
       </div>

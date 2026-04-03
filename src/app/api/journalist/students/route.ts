@@ -15,6 +15,7 @@ const studentSchema = z.object({
   village: z.string().max(100).optional(),
   story: z.string().max(5000).default(""),
   imageUrl: z.string().max(2000000).optional(),
+  storyImageUrl: z.string().max(2000000).optional(),
   goalAmount: z.string().default("0"),
   submitForReview: z.boolean().default(false),
 });
@@ -48,6 +49,7 @@ export async function POST(req: NextRequest) {
       village: village ? sanitizePlain(village) : null,
       story: sanitizePlain(story),
       imageUrl: imageUrl || null,
+      storyImageUrl: parsed.data.storyImageUrl || null,
       goalAmount: parseFloat(goalAmount) || 0,
       journalistId: user.id,
       status: submitForReview ? "PENDING" : "DRAFT",

@@ -48,13 +48,21 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
         </div>
       </div>
 
-      <div style={{ maxWidth: 800, margin: "0 auto", padding: "2rem 1.25rem" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24 }}>
+      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "2rem 1.25rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: student.storyImageUrl ? "1fr 380px" : "2fr 1fr", gap: 28 }}>
           {/* Story */}
           <div>
             <h2 style={{ fontSize: 20, fontWeight: 700, color: "#111827", marginBottom: 16 }}>Story</h2>
             <p style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>{student.story}</p>
           </div>
+
+          {/* Side: Image + Sponsor card */}
+          <div>
+            {student.storyImageUrl && (
+              <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid #e5e7eb", marginBottom: 20 }}>
+                <img src={student.storyImageUrl} alt={student.name} style={{ width: "100%", height: "auto", display: "block" }} />
+              </div>
+            )}
 
           {/* Sponsor card */}
           <div style={{ backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: 16, padding: 24, height: "fit-content", position: "sticky", top: 80 }}>
@@ -82,6 +90,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
             >
               {pct >= 100 ? "Fully Sponsored ✓" : <><Heart size={18} style={{ fill: "#fff" }} /> Sponsor {student.name}</>}
             </Link>
+          </div>
           </div>
         </div>
       </div>
